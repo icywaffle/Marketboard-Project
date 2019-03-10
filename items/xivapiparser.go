@@ -1,33 +1,32 @@
 package main
 
 import (
-	"fmt"
-	// We need to import encoding/json package
-	// in order to parse with structs
-	"encoding/json"
-
-	"io/ioutil"
-
-	// In order to open files, we need to use os package.
-	"os"
-
-	//In order to convert int to str
-	"strconv"
+	"encoding/json" // Passes the byteValue to our struct.
+	"fmt"           // Println etc.
+	"io/ioutil"     // Converts jsonFile into a byteValue, which is our byte array.
+	"os"            // Opens files and store it into jsonFile, in our memory
+	"strconv"       // Converts ints to strings etc.
 )
 
-// We need to put the byteValue into an array
-// An ItemRecipe will look like
+// An ItemRecipe will look like this
+// A container, which we can call the ItemRecipe Structure
 type ItemRecipe struct {
-	//Name of the Item
-	Name string `json:"Name"`
-	//Item ID of the Item
-	ItemResultTargetID int `json:"ItemResultTargetID"`
-	//Recipe of the Item
-	ID int `json:"ID"`
-	//Url of What you're looking at
-	Url string `json:"Url"`
-	//The 9 Ingredient Objects
-	// Why they didn't put it as an array of 9 objects... I don't know.
+	//The outer values
+	AmountIngredient0  int    `json:"AmountIngredient0"`
+	AmountIngredient1  int    `json:"AmountIngredient1"`
+	AmountIngredient2  int    `json:"AmountIngredient2"`
+	AmountIngredient3  int    `json:"AmountIngredient3"`
+	AmountIngredient4  int    `json:"AmountIngredient4"`
+	AmountIngredient5  int    `json:"AmountIngredient5"`
+	AmountIngredient6  int    `json:"AmountIngredient6"`
+	AmountIngredient7  int    `json:"AmountIngredient7"`
+	AmountIngredient8  int    `json:"AmountIngredient8"`
+	AmountIngredient9  int    `json:"AmountIngredient9"`
+	Name               string `json:"Name"`
+	ItemResultTargetID int    `json:"ItemResultTargetID"`
+	ID                 int    `json:"ID"`
+	Url                string `json:"Url"`
+	//The outer objects
 	ItemIngredient0 struct {
 		ID   int    `json:"ID"`
 		Name string `json:"Name"`
@@ -68,31 +67,101 @@ type ItemRecipe struct {
 		ID   int    `json:"ID"`
 		Name string `json:"Name"`
 	} `json:"ItemIngredient9"`
-	//The 9 Amount Ingredients
-	AmountIngredient0 int `json:"AmountIngredient0"`
-	AmountIngredient1 int `json:"AmountIngredient1"`
-	AmountIngredient2 int `json:"AmountIngredient2"`
-	AmountIngredient3 int `json:"AmountIngredient3"`
-	AmountIngredient4 int `json:"AmountIngredient4"`
-	AmountIngredient5 int `json:"AmountIngredient5"`
-	AmountIngredient6 int `json:"AmountIngredient6"`
-	AmountIngredient7 int `json:"AmountIngredient7"`
-	AmountIngredient8 int `json:"AmountIngredient8"`
-	AmountIngredient9 int `json:"AmountIngredient9"`
+
+	//The outer arrays of objects
+	ItemIngredientRecipe0 []struct {
+		//The array elements are objects, containing objects
+		CraftType struct {
+			Name string `json:"Name"`
+		}
+		ItemResult struct {
+			Name string `json:"Name"`
+		}
+	} `json:"ItemIngredientRecipe0"`
+	ItemIngredientRecipe1 []struct {
+		CraftType struct {
+			Name string `json:"Name"`
+		}
+		ItemResult struct {
+			Name string `json:"Name"`
+		}
+	} `json:"ItemIngredientRecipe1"`
+	ItemIngredientRecipe2 []struct {
+		CraftType struct {
+			Name string `json:"Name"`
+		}
+		ItemResult struct {
+			Name string `json:"Name"`
+		}
+	} `json:"ItemIngredientRecipe2"`
+	ItemIngredientRecipe3 []struct {
+		CraftType struct {
+			Name string `json:"Name"`
+		}
+		ItemResult struct {
+			Name string `json:"Name"`
+		}
+	} `json:"ItemIngredientRecipe3"`
+	ItemIngredientRecipe4 []struct {
+		CraftType struct {
+			Name string `json:"Name"`
+		}
+		ItemResult struct {
+			Name string `json:"Name"`
+		}
+	} `json:"ItemIngredientRecipe4"`
+	ItemIngredientRecipe5 []struct {
+		CraftType struct {
+			Name string `json:"Name"`
+		}
+		ItemResult struct {
+			Name string `json:"Name"`
+		}
+	} `json:"ItemIngredientRecipe5"`
+	ItemIngredientRecipe6 []struct {
+		CraftType struct {
+			Name string `json:"Name"`
+		}
+		ItemResult struct {
+			Name string `json:"Name"`
+		}
+	} `json:"ItemIngredientRecipe6"`
+	ItemIngredientRecipe7 []struct {
+		CraftType struct {
+			Name string `json:"Name"`
+		}
+		ItemResult struct {
+			Name string `json:"Name"`
+		}
+	} `json:"ItemIngredientRecipe7"`
+	ItemIngredientRecipe8 []struct {
+		CraftType struct {
+			Name string `json:"Name"`
+		}
+		ItemResult struct {
+			Name string `json:"Name"`
+		}
+	} `json:"ItemIngredientRecipe8"`
+	ItemIngredientRecipe9 []struct {
+		CraftType struct {
+			Name string `json:"Name"`
+		}
+		ItemResult struct {
+			Name string `json:"Name"`
+		}
+	} `json:"ItemIngredientRecipe9"`
 }
 
 func main() {
 
-	// Open the json file
-	jsonFile, err := os.Open("Highmythriteingot.json")
-
-	// Os.Open will give two values, the jsonFile, and the error.
-	// If it returns an error, it will print it.
+	// Open the json file, if it doesn't work, it'll print out error.
+	jsonFile, err := os.Open("SeeingHordeAxe.json")
 	if err != nil {
 		fmt.Println(err)
+		os.Exit(1001) // Error 1001 - No Json file found.
 	}
 
-	fmt.Println("Success. Opened json.")
+	fmt.Println("Success.")
 
 	// We need to keep the jsonFile Open.
 	defer jsonFile.Close()
@@ -108,34 +177,22 @@ func main() {
 	//We now just unmarshal the byteArray into the struct
 	json.Unmarshal(byteValue, &item)
 
-	//Iterate every user array element,
-	// print out Item Name, Recipe ID, URL, and The Ingredients
-
+	//Print out our data to check.
 	fmt.Println("Item:" + item.Name)
-	// Changes int to a string. strconv.Itoa.
 	fmt.Println("Recipe ID: " + strconv.Itoa(item.ID))
 	fmt.Println("URL: " + item.Url)
-	/*
-		fmt.Println("First Ingredient: "+ strconv.Itoa(item.ItemIngredient0.ID))
-		fmt.Println("First Ingredient: "+ strconv.Itoa(item.ItemIngredient1.ID))
-		fmt.Println("First Ingredient: "+ strconv.Itoa(item.ItemIngredient2.ID))
-		fmt.Println("First Ingredient: "+ strconv.Itoa(item.ItemIngredient3.ID))
-		fmt.Println("First Ingredient: "+ strconv.Itoa(item.ItemIngredient4.ID))
-		fmt.Println("First Ingredient: "+ strconv.Itoa(item.ItemIngredient5.ID))
-		fmt.Println("First Ingredient: "+ strconv.Itoa(item.ItemIngredient6.ID))
-		fmt.Println("First Ingredient: "+ strconv.Itoa(item.ItemIngredient7.ID))
-		fmt.Println("First Ingredient: "+ strconv.Itoa(item.ItemIngredient8.ID))
-		fmt.Println("First Ingredient: "+ strconv.Itoa(item.ItemIngredient9.ID))
-		fmt.Println("Ingred0 Amount: "+ strconv.Itoa(item.AmountIngredient0))
-		fmt.Println("Ingred1 Amount: "+ strconv.Itoa(item.AmountIngredient1))
-		fmt.Println("Ingred2 Amount: "+ strconv.Itoa(item.AmountIngredient2))
-		fmt.Println("Ingred3 Amount: "+ strconv.Itoa(item.AmountIngredient3))
-		fmt.Println("Ingred4 Amount: "+ strconv.Itoa(item.AmountIngredient4))
-		fmt.Println("Ingred5 Amount: "+ strconv.Itoa(item.AmountIngredient5))
-		fmt.Println("Ingred6 Amount: "+ strconv.Itoa(item.AmountIngredient6))
-		fmt.Println("Ingred7 Amount: "+ strconv.Itoa(item.AmountIngredient7))
-		fmt.Println("Ingred8 Amount: "+ strconv.Itoa(item.AmountIngredient8))
-		fmt.Println("Ingred9 Amount: "+ strconv.Itoa(item.AmountIngredient9))
-	*/
+	fmt.Println("First Ingredient: " + item.ItemIngredient0.Name)
+	for i := 0; i < len(item.ItemIngredientRecipe0); i++ {
+		fmt.Println("Ingredient0: " + item.ItemIngredientRecipe0[i].ItemResult.Name)
+		fmt.Println("Ingredient0: " + item.ItemIngredientRecipe0[i].CraftType.Name)
+	}
+
+	// We can equate these string values, and check if it's right. Which it will be.
+	if item.ItemIngredientRecipe0[0].ItemResult.Name == item.ItemIngredient0.Name {
+		fmt.Println("Success")
+	} else {
+		fmt.Println("Failure")
+	}
+
 	//TODO: Put this information into the database!
 }
