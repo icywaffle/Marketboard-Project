@@ -56,9 +56,12 @@ APIs
             This searches for the strings of related items. However, we still need to go through and find the ID of our item of request.
             In order to confirm the item that is requested, we need the user to confirm the item through this list.
 
-YOU CAN BUILD IT BY PIECES. One function will work without another! This is good design because functions will be independent of one another.
+        We need to parse the JSON Data Structure, and store it into Golang data structure, and then we are able to put this into our own database.
 
 functions
+    1. GET Request, and store JSON into a Database. There's no need to GET more than once, if we already have it. 
+        We need to mark it as RECIEVED, if we have an item we want to search for. We need to flag it.
+    2. When accessing the API, we need the AUTH_KEY
     1. Appending to string for the API
     2. Search Functions. We need to find specific information from the json.
     3. Calculating Functions. We need to calculate sums etc.
@@ -68,3 +71,65 @@ functions
             Now, some people may sell for a terrible price by accident. We need to find the error function.
             Therefore, if someone sold an item at a threshold that's lower, we can ignore that price.
             But how big should the threshold be? Etc
+    5. Recrawl the market to find the history with a purchase with the highest profit over a 7 day average. Only need to do this once a patch.
+        Crawl slowly so you won't get banned.
+
+
+
+
+Database Design
+    Using SQL
+
+    item(iID,iName,iPrice,mBook)
+    iID ->"ID": 14146
+    iName -> "Name": "High Mythrite Ingot"
+
+    recipe(iID,rID) -> Can have multiple rIDs for one iID
+        rID = "GameContentLinks": Item Result.
+    materials(iID,matID,matName,matAmount)
+        We can have multiple materials for a unique item ID.
+        matID = iID
+        matAmount = "AmountIngredient0": 2,
+        What if a material, is also made of materials?
+    If all
+    "ItemIngredientRecipe0": null,
+    "ItemIngredientRecipe1": null,
+    "ItemIngredientRecipe2": null,
+    "ItemIngredientRecipe3": null,
+    "ItemIngredientRecipe4": null,
+    "ItemIngredientRecipe5": null,
+    "ItemIngredientRecipe6": null,
+    "ItemIngredientRecipe7": null,
+    "ItemIngredientRecipe8": null,
+    "ItemIngredientRecipe9": null,
+    then there is no need to search.
+    Else if one is not null,
+    then there is still an item with materials.
+
+    price(iID,iPrice)
+    
+        We can fill database with 10 items
+    We need to think of what the crawler will bring us.
+        Marketboard History sold   
+        Current Marketboard Prices
+            We need to get this stuff into a database.
+
+                iID
+                PRICE, PRICE, Next PRICE, etc.
+                Sold Price, Sold Price, etc.
+                
+                This isn't good to put into the database. 
+                We'll clean it up, and put it as a different from  
+                    iID
+                    giltraded7d
+                    nqLowest
+                    hqLowest
+                    profit
+
+                    The most important information is the
+                        nqlowest and hqlowest which we can use to add later on to find out the cost of making.
+                    We also need to know amount of gil traded over the 7day which gives it the value
+                        Highest giltraded7d is the best market.
+                        But this must be paired with the %profit.
+
+
