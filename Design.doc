@@ -76,35 +76,61 @@ functions
 
 
 
+Search Function.
+https://xivapi.com/search?string=eikon+mythrite&pretty=1&key=
+    Append to the string= term, and change spaces to +.
+        We want to search for an item.
+        User must pick the right item.
+        So we need to display the icon, and the name.
+        Then we choose the item, not the recipe.
+            The item will tell us the recipe ids.
+
+Parsing Function
+    From /item/itemID
+    Parse 
+        "ID": (iID)
+        "Name": "iName"
+        "SecretRecipeBook" 
+            -> "Name" : "Master Blacksmith IV"
+        "GameContentLinks" -> "Recipe" -> "ItemResult"[]
+    From /Recipe/recipeID
+    Parse  
+        "ID": (rId)
+        "ItemIngredient0-9TargetID": (9 itemIDs)
+        :AmountIngredient0-9": (9 itemAmounts)
+
+    This is all we need. We just need to recursively parse, until ItemIngredient target IDs are all zero.
 
 Database Design
     Using SQL
 
-    item(iID,iName,iPrice,mBook)
-    iID ->"ID": 14146
-    iName -> "Name": "High Mythrite Ingot"
+    item(iID,iName,mBook)
+        Search /Item/itemID
+        iID ->"ID": 14146
+        iName -> "Name": "High Mythrite Ingot"
+        mBook -> "SecretRecipeBook" -> "Name" : "Master Blacksmith IV"
+              -> "SecretRecipeBook" -> null, No master books.
+            Let's us know if we can craft or not.
 
     recipe(iID,rID) -> Can have multiple rIDs for one iID
-        rID = "GameContentLinks": Item Result.
-    materials(iID,matID,matName,matAmount)
-        We can have multiple materials for a unique item ID.
-        matID = iID
-        matAmount = "AmountIngredient0": 2,
-        What if a material, is also made of materials?
-    If all
-    "ItemIngredientRecipe0": null,
-    "ItemIngredientRecipe1": null,
-    "ItemIngredientRecipe2": null,
-    "ItemIngredientRecipe3": null,
-    "ItemIngredientRecipe4": null,
-    "ItemIngredientRecipe5": null,
-    "ItemIngredientRecipe6": null,
-    "ItemIngredientRecipe7": null,
-    "ItemIngredientRecipe8": null,
-    "ItemIngredientRecipe9": null,
-    then there is no need to search.
-    Else if one is not null,
-    then there is still an item with materials.
+        Search /Item/itemID
+        rID -> "GameContentLinks" -> "Recipe" -> "ItemResult"
+            If ItemResult is a null value in the database, it's a base item.
+                    TODO: The "ItemIngredient" section of this shows the recipes that this is used for.
+    materials(rID,matID0,...,9,matName0,...9,,matAmount0,...,9) -> an rID will give us a set of matIDs,matNames, and matAmounts.
+        Search /Recipe/recipeID
+        rID -> "ID"
+        matID -> "ItemIngredient0TargetID"
+            If "ItemIngredientTargetID" = 0, there is nothing.
+        matAmount -> "AmountIngredient0"
+    From the beginning.
+    An item will have an iID.
+        We can look through the iID to give us an rID
+            This rID, will give us some matIDs.
+                We take out the matIDs and matAmounts from the database.
+                    These matIDs are really just iIDs. 
+                    Now we can do recursion.
+        If there is no "ItemResult" it is a base item.
 
     price(iID,iPrice)
     

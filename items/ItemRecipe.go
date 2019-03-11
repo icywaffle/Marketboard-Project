@@ -1,11 +1,14 @@
-package main
+package items
 
 import (
 	"encoding/json" // Passes the byteValue to our struct.
 	"fmt"           // Println etc.
 	"io/ioutil"     // Converts jsonFile into a byteValue, which is our byte array.
-	"os"            // Opens files and store it into jsonFile, in our memory
-	"strconv"       // Converts ints to strings etc.
+
+	// Opens files and store it into jsonFile, in our memory
+	"log"
+	"net/http"
+	"strconv" // Converts ints to strings etc.
 )
 
 // An ItemRecipe will look like this
@@ -152,26 +155,40 @@ type ItemRecipe struct {
 	} `json:"ItemIngredientRecipe9"`
 }
 
-func main() {
+//Pass a struct item to ItemRecipe.
+func GetRecipe(itemweb string) {
 
-	// Open the json file, if it doesn't work, it'll print out error.
-	jsonFile, err := os.Open("SeeingHordeAxe.json")
+	// TODO: ?columns=Attributes,Object.Attribute will significantly lower load.
+
+	//What this does, is open the file, and store it as memory jsonFile, and we need to read the body component as a byte slice.
+	jsonFile, err := http.Get(itemweb)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1001) // Error 1001 - No Json file found.
+		log.Fatalln(err)
 	}
 
-	fmt.Println("Success.")
+	byteValue, err := ioutil.ReadAll(jsonFile.Body)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
-	// We need to keep the jsonFile Open.
-	defer jsonFile.Close()
+	/* This is the regular file equivalent for Debug.
+	jsonFile, err := os.Open("SeeingHordeAxe.json")
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1001) // Error 1001 - No Json file found.
+		}
 
-	// This should read into our memory.
-	// We need to convert our byte array
-	// using ioutil.ReadAll
+
+		fmt.Println("Success.")
+
+		// We need to keep the memory alive.
+		defer jsonFile.Close()
+
+
+	// We need to read the memory body as a byte slice.
 	byteValue, _ := ioutil.ReadAll(jsonFile)
+	*/
 
-	// Temporary Initialization. We will pass a struct through the function later.
 	var item ItemRecipe
 
 	//We now just unmarshal the byteArray into the struct
@@ -182,17 +199,20 @@ func main() {
 	fmt.Println("Recipe ID: " + strconv.Itoa(item.ID))
 	fmt.Println("URL: " + item.Url)
 	fmt.Println("First Ingredient: " + item.ItemIngredient0.Name)
+	fmt.Println("First Ingredient Amount: " + strconv.Itoa(item.AmountIngredient0))
 	for i := 0; i < len(item.ItemIngredientRecipe0); i++ {
 		fmt.Println("Ingredient0: " + item.ItemIngredientRecipe0[i].ItemResult.Name)
 		fmt.Println("Ingredient0: " + item.ItemIngredientRecipe0[i].CraftType.Name)
 	}
 
-	// We can equate these string values, and check if it's right. Which it will be.
-	if item.ItemIngredientRecipe0[0].ItemResult.Name == item.ItemIngredient0.Name {
-		fmt.Println("Success")
-	} else {
-		fmt.Println("Failure")
-	}
+	/*
+		// We can equate these string values, and check if it's right. Which it will be.
+		if item.ItemIngredientRecipe0[0].ItemResult.Name == item.ItemIngredient0.Name {
+			fmt.Println("Success")
+		} else {
+			fmt.Println("Failure")
+		}
+	*/
 
 	//TODO: Put this information into the database!
 }
