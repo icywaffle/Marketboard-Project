@@ -11,9 +11,9 @@ func main() {
 
 	start := time.Now()
 
-	//We need a GET request, and pass this information to the GetRecipe function
+	//We need to get the URL
 	testitem := getitems.UrlAPI("Recipe", "33180")
-
+	//We need to use the GET request, and put JSON data into the database.
 	getitems.GetRecipe(testitem)
 
 	elapsed := time.Since(start)

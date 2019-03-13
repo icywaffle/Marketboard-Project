@@ -117,12 +117,23 @@ Database Design
         rID -> "GameContentLinks" -> "Recipe" -> "ItemResult"
             If ItemResult is a null value in the database, it's a base item.
                     TODO: The "ItemIngredient" section of this shows the recipes that this is used for.
-    materials(rID,matID0,...,9,matName0,...9,,matAmount0,...,9) -> an rID will give us a set of matIDs,matNames, and matAmounts.
+
+                    
+    materials(rID,matID0,...,9,matAmount0,...,9) -> an rID will give us a set of matIDs, and matAmounts.
         Search /Recipe/recipeID
         rID -> "ID"
         matID -> "ItemIngredient0TargetID"
             If "ItemIngredientTargetID" = 0, there is nothing.
         matAmount -> "AmountIngredient0"
+        crafttypeID -> "CraftTypeID"
+    
+    crafters(ctID,ctName)
+        We just need the names of the craft type, so that we can reconstruct this later by hand if need be.
+        https://xivapi.com/CraftType?pretty=1
+        
+    POWERFUL Now.
+    https://xivapi.com/content
+    
     From the beginning.
     An item will have an iID.
         We can look through the iID to give us an rID
