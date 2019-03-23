@@ -3,13 +3,6 @@ Goals
         In order to do this, we need to take the Lowest Price (P_total)
             The Lowest Price is the Selling Price.
             We need to crawl the prices of high cash flow.
-                * We need to understand how to make a list of items.
-                * We need to update this list.
-                * We can manually update the list by copy pasting 100 items into an Array.
-                    * Using this 100 items of array, we need to feed these 100 items to a crawler.
-                    * The crawler will give us the Selling Price information
-                    * The crawler must give this information at least once a day.
-                    * Crawl once, forget the next until called again.
                     This crawler uses the Companion App API
         We also need to find the price of the individual materials (P_mats).
             * We need to understand whether or not the materials would give more profit than using them to make the full item
@@ -41,12 +34,6 @@ Goals
         Now, how do I make that item? *Interaction Here.
         What is the trend of this profit? Was it higher yesterday?
 
-Designing
-    We can create a crawler later.
-    For now, we can just use the data for 10 items and expand the code from there.
-        For these 10 items, we can just use ffxivmb and copy from excel.
-
-
 APIs
     1. XIVAPI
         /Recipe/(itemID)
@@ -56,14 +43,18 @@ APIs
             This searches for the strings of related items. However, we still need to go through and find the ID of our item of request.
             In order to confirm the item that is requested, we need the user to confirm the item through this list.
 
-        We need to parse the JSON Data Structure, and store it into Golang data structure, and then we are able to put this into our own database.
-
 functions
-    1. GET Request, and store JSON into a Database. There's no need to GET more than once, if we already have it. 
-        We need to mark it as RECIEVED, if we have an item we want to search for. We need to flag it.
-    2. When accessing the API, we need the AUTH_KEY
-    1. Appending to string for the API
-    2. Search Functions. We need to find specific information from the json.
+    1. Cache Layering Get requests.
+    2. Search Function: Allow user to search for an item (String Append again), using XIVAPI.
+        Search Function.
+        https://xivapi.com/search?string=eikon+mythrite&pretty=1&key=
+        Append to the string= term, and change spaces to +.
+            We want to search for an item.
+            User must pick the right item.
+            So we need to display the icon, and the name.
+            Then we choose the item, not the recipe.
+                The item will tell us the recipe ids.
+
     3. Calculating Functions. We need to calculate sums etc.
         Sum of P_mats
         P_total = Current Selling Price
@@ -71,102 +62,29 @@ functions
             Now, some people may sell for a terrible price by accident. We need to find the error function.
             Therefore, if someone sold an item at a threshold that's lower, we can ignore that price.
             But how big should the threshold be? Etc
-    5. Recrawl the market to find the history with a purchase with the highest profit over a 7 day average. Only need to do this once a patch.
-        Crawl slowly so you won't get banned.
+    5. Crawl Requests to crawl whenever we check up on an item.
+            Crawl requests need to be done at least once a day.
+            If data is one day old, request again.
+            We can keep the time data in the database.
 
-
-
-Search Function.
-https://xivapi.com/search?string=eikon+mythrite&pretty=1&key=
-    Append to the string= term, and change spaces to +.
-        We want to search for an item.
-        User must pick the right item.
-        So we need to display the icon, and the name.
-        Then we choose the item, not the recipe.
-            The item will tell us the recipe ids.
-
-Parsing Function
-    From /item/itemID
-    Parse 
-        "ID": (iID)
-        "Name": "iName"
-        "SecretRecipeBook" 
-            -> "Name" : "Master Blacksmith IV"
-        "GameContentLinks" -> "Recipe" -> "ItemResult"[]
-    From /Recipe/recipeID
-    Parse  
-        "ID": (rId)
-        "ItemIngredient0-9TargetID": (9 itemIDs)
-        :AmountIngredient0-9": (9 itemAmounts)
-
-    This is all we need. We just need to recursively parse, until ItemIngredient target IDs are all zero.
 
 Database Design
     Using SQL
+        All we need, is to keep the price history.
+        item()
+            There's twenty history prices.
+                It has Price per item, Amount Sold, date sold.
+            Check Prices   
+                It has variable amount of stuff in the list.
+                It has price per item, and amount selling.
+        
+        The best way to structure this might be
 
-    item(iID,iName,mBook)
-        Search /Item/itemID
-        iID ->"ID": 14146
-        iName -> "Name": "High Mythrite Ingot"
-        mBook -> "SecretRecipeBook" -> "Name" : "Master Blacksmith IV"
-              -> "SecretRecipeBook" -> null, No master books.
-            Let's us know if we can craft or not.
+        itemHistory(iID,Price,Amount,DateSold,DateCrawled)
+        itemCheck(iID,Price,Amount,DateCrawled)
 
-    recipe(iID,rID) -> Can have multiple rIDs for one iID
-        Search /Item/itemID
-        rID -> "GameContentLinks" -> "Recipe" -> "ItemResult"
-            If ItemResult is a null value in the database, it's a base item.
-                    TODO: The "ItemIngredient" section of this shows the recipes that this is used for.
-
-                    
-    materials(rID,matID0,...,9,matAmount0,...,9) -> an rID will give us a set of matIDs, and matAmounts.
-        Search /Recipe/recipeID
-        rID -> "ID"
-        matID -> "ItemIngredient0TargetID"
-            If "ItemIngredientTargetID" = 0, there is nothing.
-        matAmount -> "AmountIngredient0"
-        crafttypeID -> "CraftTypeID"
-    
-    crafters(ctID,ctName)
-        We just need the names of the craft type, so that we can reconstruct this later by hand if need be.
-        https://xivapi.com/CraftType?pretty=1
+        If DateNow - DateCrawled > 1 day, Recrawl the database.
         
     POWERFUL Now.
     https://xivapi.com/content
-    
-    From the beginning.
-    An item will have an iID.
-        We can look through the iID to give us an rID
-            This rID, will give us some matIDs.
-                We take out the matIDs and matAmounts from the database.
-                    These matIDs are really just iIDs. 
-                    Now we can do recursion.
-        If there is no "ItemResult" it is a base item.
-
-    price(iID,iPrice)
-    
-        We can fill database with 10 items
-    We need to think of what the crawler will bring us.
-        Marketboard History sold   
-        Current Marketboard Prices
-            We need to get this stuff into a database.
-
-                iID
-                PRICE, PRICE, Next PRICE, etc.
-                Sold Price, Sold Price, etc.
-                
-                This isn't good to put into the database. 
-                We'll clean it up, and put it as a different from  
-                    iID
-                    giltraded7d
-                    nqLowest
-                    hqLowest
-                    profit
-
-                    The most important information is the
-                        nqlowest and hqlowest which we can use to add later on to find out the cost of making.
-                    We also need to know amount of gil traded over the 7day which gives it the value
-                        Highest giltraded7d is the best market.
-                        But this must be paired with the %profit.
-
 
