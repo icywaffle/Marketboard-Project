@@ -37,86 +37,56 @@ type AmountIngredient struct {
 
 // Outer Container
 type IngredientRecipe struct {
-	//An object, with arrays of objects
+	/*
+		ItemIngredientRecipe0 []struct {
+			CraftType struct {
+				ID   int    `json:"ID"`
+				Name string `json:"Name"`
+			} `json:"CraftType"`
+			ItemResult struct {
+				ID int `json:"ID"`
+			} `json:"ItemResult"`
+		} `json:"ItemIngredientRecipe0"`
+		This is how you obtain information from a json array of objects with properties*/
 	ItemIngredientRecipe0 []struct {
-		CraftType struct {
-			ID string `json:"ID"`
-		}
-		ItemResult struct {
-			ID int `json:"ID"`
-		}
+		CraftTypeTargetID  int `json:"CraftTypeTargetID"`
+		ItemResultTargetID int `json:"ItemResultTargetID"`
 	} `json:"ItemIngredientRecipe0"`
 	ItemIngredientRecipe1 []struct {
-		CraftType struct {
-			ID string `json:"ID"`
-		}
-		ItemResult struct {
-			ID int `json:"ID"`
-		}
+		CraftTypeTargetID  int `json:"CraftTypeTargetID"`
+		ItemResultTargetID int `json:"ItemResultTargetID"`
 	} `json:"ItemIngredientRecipe1"`
 	ItemIngredientRecipe2 []struct {
-		CraftType struct {
-			ID string `json:"ID"`
-		}
-		ItemResult struct {
-			ID int `json:"ID"`
-		}
+		CraftTypeTargetID  int `json:"CraftTypeTargetID"`
+		ItemResultTargetID int `json:"ItemResultTargetID"`
 	} `json:"ItemIngredientRecipe2"`
 	ItemIngredientRecipe3 []struct {
-		CraftType struct {
-			ID string `json:"ID"`
-		}
-		ItemResult struct {
-			ID int `json:"ID"`
-		}
+		CraftTypeTargetID  int `json:"CraftTypeTargetID"`
+		ItemResultTargetID int `json:"ItemResultTargetID"`
 	} `json:"ItemIngredientRecipe3"`
 	ItemIngredientRecipe4 []struct {
-		CraftType struct {
-			ID string `json:"ID"`
-		}
-		ItemResult struct {
-			ID int `json:"ID"`
-		}
+		CraftTypeTargetID  int `json:"CraftTypeTargetID"`
+		ItemResultTargetID int `json:"ItemResultTargetID"`
 	} `json:"ItemIngredientRecipe4"`
 	ItemIngredientRecipe5 []struct {
-		CraftType struct {
-			ID string `json:"ID"`
-		}
-		ItemResult struct {
-			ID int `json:"ID"`
-		}
+		CraftTypeTargetID  int `json:"CraftTypeTargetID"`
+		ItemResultTargetID int `json:"ItemResultTargetID"`
 	} `json:"ItemIngredientRecipe5"`
 	ItemIngredientRecipe6 []struct {
-		CraftType struct {
-			ID string `json:"ID"`
-		}
-		ItemResult struct {
-			ID int `json:"ID"`
-		}
+		CraftTypeTargetID  int `json:"CraftTypeTargetID"`
+		ItemResultTargetID int `json:"ItemResultTargetID"`
 	} `json:"ItemIngredientRecipe6"`
 	ItemIngredientRecipe7 []struct {
-		CraftType struct {
-			ID string `json:"ID"`
-		}
-		ItemResult struct {
-			ID int `json:"ID"`
-		}
+		CraftTypeTargetID  int `json:"CraftTypeTargetID"`
+		ItemResultTargetID int `json:"ItemResultTargetID"`
 	} `json:"ItemIngredientRecipe7"`
 	ItemIngredientRecipe8 []struct {
-		CraftType struct {
-			ID string `json:"ID"`
-		}
-		ItemResult struct {
-			ID int `json:"ID"`
-		}
+		CraftTypeTargetID  int `json:"CraftTypeTargetID"`
+		ItemResultTargetID int `json:"ItemResultTargetID"`
 	} `json:"ItemIngredientRecipe8"`
 	ItemIngredientRecipe9 []struct {
-		CraftType struct {
-			ID string `json:"ID"`
-		}
-		ItemResult struct {
-			ID int `json:"ID"`
-		}
+		CraftTypeTargetID  int `json:"CraftTypeTargetID"`
+		ItemResultTargetID int `json:"ItemResultTargetID"`
 	} `json:"ItemIngredientRecipe9"`
 }
 
@@ -154,22 +124,18 @@ func GetRecipe(itemweb string) {
 	for i := 0; i < n_amount; i++ {
 		AmountIngredients[i] = fmt.Sprintf(`%v`, r_amount.Field(i))
 	}
-	fmt.Println(AmountIngredients)
+	fmt.Println(AmountIngredients) // Output element = AmountIngredient
 
 	//Ingredient Recipe Information
-	// We need to convert into an array. stuff[i], with [j=2], where it's ctID,iID
 	var ingredients IngredientRecipe
 	json.Unmarshal(byteValue, &ingredients)
 	r_ingred := reflect.ValueOf(ingredients)
 	n_ingred := r_ingred.NumField()
-	// TODO: Fix the i,j'th elements to be able to put both, CraftTypeID, and Item Result ID.
-	CraftingIngredients := make([][]string, n_ingred)
-	for i := 0; i < n_ingred; i++ {
-		for j := 0; j <= 2; j++ {
-			CraftingIngredients[i][j] = fmt.Sprintf(`%v`, r_ingred.Field(i))
-		}
+	IngredientRecipes := make([]string, n_ingred)
+	for i := 0; i < n_amount; i++ {
+		IngredientRecipes[i] = fmt.Sprintf(`%v`, r_ingred.Field(i))
 	}
-	fmt.Println(CraftingIngredients)
+	fmt.Println(IngredientRecipes) // Output element = [{Recipe for ingredient} {other recipe for ingredient}]
 
 	//TODO: Put this information into the database!
 }

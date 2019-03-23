@@ -6,7 +6,7 @@ import (
 	getKeys "./keys"
 )
 
-// TODO: ?columns=Attributes,Object.Attribute will significantly lower load.
+// TODO: ?columns=Attributes,Object.Attribute will significantly lower payload.
 
 func UrlAPI(userfield string, useruniqueID string) string {
 	basewebsite := []byte("https://xivapi.com/")
