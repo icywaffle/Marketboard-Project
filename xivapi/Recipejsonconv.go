@@ -1,4 +1,6 @@
-package items
+// Converts Recipe Pages of json, to arrays.
+
+package xivapi
 
 import (
 	"encoding/json" // Passes the byteValue to our struct.
@@ -91,11 +93,11 @@ type IngredientRecipe struct {
 }
 
 //Pass a struct item to ItemRecipe.
-func GetRecipe(itemweb string) {
+func GetRecipe(itemjson string) {
 	// TODO: We can split the URL using categories, to get smaller payloads of JSON.
 	// ABOUT TODO: You want to find an optimal amount of splitting, or just having one big payload (or one reduced payload would be ideal).
 	//What this does, is open the file, and read it
-	jsonFile, err := http.Get(itemweb)
+	jsonFile, err := http.Get(itemjson)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -132,10 +134,10 @@ func GetRecipe(itemweb string) {
 	r_ingred := reflect.ValueOf(ingredients)
 	n_ingred := r_ingred.NumField()
 	IngredientRecipes := make([]string, n_ingred)
-	for i := 0; i < n_amount; i++ {
+	for i := 0; i < n_ingred; i++ {
 		IngredientRecipes[i] = fmt.Sprintf(`%v`, r_ingred.Field(i))
 	}
 	fmt.Println(IngredientRecipes) // Output element = [{Recipe for ingredient} {other recipe for ingredient}]
 
-	//TODO: Put this information into the database!
+	//TODO: If every element in Ingredient Recipes=null, then that means it's a base item.
 }
