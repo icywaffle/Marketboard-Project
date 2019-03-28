@@ -3,8 +3,9 @@
 package xivapi
 
 import (
-	"encoding/json" // Passes the byteValue to our struct.
-	"fmt"           // Println etc.
+	// Passes the byteValue to our struct.
+	"encoding/json"
+	"fmt" // Println etc.
 	"io/ioutil"
 
 	// Converts jsonFile into a byteValue, which is our byte array.
@@ -13,7 +14,7 @@ import (
 	// Opens files and store it into jsonFile, in our memory
 	"log"
 	"net/http"
-	"strconv" // Converts ints to strings etc.
+	// Converts ints to strings etc.
 )
 
 type Recipe struct {
@@ -21,6 +22,9 @@ type Recipe struct {
 	ItemResultTargetID int    `json:"ItemResultTargetID"`
 	ID                 int    `json:"ID"`
 	Url                string `json:"Url"`
+	CraftType          struct {
+		ID int `json:"ID"`
+	} `json:"CraftType"`
 }
 
 type AmountIngredient struct {
@@ -37,19 +41,21 @@ type AmountIngredient struct {
 	AmountIngredient9 int `json:"AmountIngredient9"`
 }
 
+type ItemIngredient struct {
+	ItemIngredient0TargetID int `json:"ItemIngredient0TargetID"`
+	ItemIngredient1TargetID int `json:"ItemIngredient1TargetID"`
+	ItemIngredient2TargetID int `json:"ItemIngredient2TargetID"`
+	ItemIngredient3TargetID int `json:"ItemIngredient3TargetID"`
+	ItemIngredient4TargetID int `json:"ItemIngredient4TargetID"`
+	ItemIngredient5TargetID int `json:"ItemIngredient5TargetID"`
+	ItemIngredient6TargetID int `json:"ItemIngredient6TargetID"`
+	ItemIngredient7TargetID int `json:"ItemIngredient7TargetID"`
+	ItemIngredient8TargetID int `json:"ItemIngredient8TargetID"`
+	ItemIngredient9TargetID int `json:"ItemIngredient9TargetID"`
+}
+
 // Outer Container
 type IngredientRecipe struct {
-	/*
-		ItemIngredientRecipe0 []struct {
-			CraftType struct {
-				ID   int    `json:"ID"`
-				Name string `json:"Name"`
-			} `json:"CraftType"`
-			ItemResult struct {
-				ID int `json:"ID"`
-			} `json:"ItemResult"`
-		} `json:"ItemIngredientRecipe0"`
-		This is how you obtain information from a json array of objects with properties*/
 	ItemIngredientRecipe0 []struct {
 		CraftTypeTargetID  int `json:"CraftTypeTargetID"`
 		ItemResultTargetID int `json:"ItemResultTargetID"`
@@ -92,10 +98,17 @@ type IngredientRecipe struct {
 	} `json:"ItemIngredientRecipe9"`
 }
 
-//Pass a struct item to ItemRecipe.
+// This function allows us to pass these awful structs into this function and obtain a clean array.
+func jsontoarray(anystruct interface{}) {
+	r_any := reflect.ValueOf(anystruct)
+	n_any := r_any.NumField()
+	newarray := make([]string, n_any)
+	for i := 0; i < n_any; i++ {
+		newarray[i] = fmt.Sprintf(`%v`, r_any.Field(i))
+	}
+}
+
 func GetRecipe(itemjson string) {
-	// TODO: We can split the URL using categories, to get smaller payloads of JSON.
-	// ABOUT TODO: You want to find an optimal amount of splitting, or just having one big payload (or one reduced payload would be ideal).
 	//What this does, is open the file, and read it
 	jsonFile, err := http.Get(itemjson)
 	if err != nil {
@@ -108,6 +121,18 @@ func GetRecipe(itemjson string) {
 	}
 	defer jsonFile.Body.Close()
 
+	var amount AmountIngredient
+	json.Unmarshal(byteValue, &amount)
+	jsontoarray(amount)
+	fmt.Println(amount)
+
+}
+
+/*
+//Pass a struct item to ItemRecipe.
+func GetRecipe(itemjson string) {
+	// TODO: We can split the URL using categories, to get smaller payloads of JSON.
+
 	// Recipe Struct information
 	var item Recipe
 	json.Unmarshal(byteValue, &item)
@@ -115,6 +140,7 @@ func GetRecipe(itemjson string) {
 	fmt.Println("Item:" + item.Name)
 	fmt.Println("Recipe ID: " + strconv.Itoa(item.ID))
 	fmt.Println("URL: " + item.Url)
+	fmt.Println("CraftType:" + strconv.Itoa(item.CraftType.ID))
 
 	// Amount of Ingredients Information
 	var amount AmountIngredient
@@ -139,5 +165,17 @@ func GetRecipe(itemjson string) {
 	}
 	fmt.Println(IngredientRecipes) // Output element = [{Recipe for ingredient} {other recipe for ingredient}]
 
+	// Item Ingredient Parallel Information
+	var itemingredient ItemIngredient
+	json.Unmarshal(byteValue, &itemingredient)
+	r_iteming := reflect.ValueOf(itemingredient)
+	n_iteming := r_iteming.NumField()
+	ItemIngredients := make([]string, n_iteming)
+	for i := 0; i < n_ingred; i++ {
+		ItemIngredients[i] = fmt.Sprintf(`%v`, r_ingred.Field(i))
+	} //TODO: We want to fill the other array. The other array should have elements, and null
+	// These null elements could be base items.
+
 	//TODO: If every element in Ingredient Recipes=null, then that means it's a base item.
 }
+*/
