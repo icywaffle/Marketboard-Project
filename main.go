@@ -29,20 +29,30 @@ func search() {
 			},*/
 	// To be able to find Item Recipes. If null, then it's a base item.
 }
-func choose() {
+func chooseRecipe() {
 	//After finding the results, and user chooses put the item ID into here.
-	fmt.Printf("Item/RecipeID:")
+	fmt.Printf("RecipeID:")
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Scan()
 	useriteminput := scanner.Text()
 	//And identify whether this id is a recipe or item id
-	fmt.Printf("Is it Item or Recipe:")
-	scanner.Scan()
-	userchoiceinput := scanner.Text()
+	userchoiceinput := "recipe"
 	// Convert input into a url, then output the url string
 	testitem := xivapi.UrlRecipe(userchoiceinput, useriteminput)
 	//We need to use the GET request on the url, and put JSON data into the database.
 	xivapi.GetRecipe(testitem)
+}
+func chooseItem() {
+	//After finding the results, and user chooses put the item ID into here.
+	fmt.Printf("ItemID:")
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Scan()
+	useriteminput := scanner.Text()
+	userchoiceinput := "item"
+	// Convert input into a url, then output the url string
+	testitem := xivapi.UrlRecipe(userchoiceinput, useriteminput)
+	//We need to use the GET request on the url, and put JSON data into the database.
+	xivapi.GetItem(testitem)
 }
 
 func main() {
@@ -61,7 +71,9 @@ func main() {
 		case 1:
 			search()
 		case 2:
-			choose()
+			chooseRecipe()
+		case 3:
+			chooseItem()
 		default:
 			os.Exit(2000) // ERROR 2000 : End program with no input.
 		}

@@ -99,7 +99,7 @@ type IngredientRecipe struct {
 }
 
 // This function allows us to pass these awful structs into this function and obtain a clean array.
-func jsontoarray(anystruct interface{}) {
+func Jsontoarray(anystruct interface{}) {
 	r_any := reflect.ValueOf(anystruct)
 	n_any := r_any.NumField()
 	newarray := make([]string, n_any)
@@ -123,7 +123,7 @@ func GetRecipe(itemjson string) {
 
 	var amount AmountIngredient
 	json.Unmarshal(byteValue, &amount)
-	jsontoarray(amount)
+	Jsontoarray(amount)
 	fmt.Println(amount)
 
 }
