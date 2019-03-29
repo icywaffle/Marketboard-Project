@@ -1,5 +1,3 @@
-// Converts Search Pages of json, to arrays.
-
 package xivapi
 
 import (
@@ -16,6 +14,8 @@ import (
 	"strconv" // Converts ints to strings etc.
 )
 
+// Converts Search Pages of json, to arrays.
+
 type SearchPages struct {
 	Pagination struct {
 		Page           int `json:"Page"`
@@ -29,6 +29,7 @@ type SearchPages struct {
 type SearchResults struct {
 	Results []struct {
 		ID      int    `json:"ID"`
+		Name    string `json:"Name"`
 		Icon    string `json:"Icon"`
 		UrlType string `json:"UrlType"`
 	} `json:"Results"`

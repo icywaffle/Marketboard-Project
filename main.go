@@ -9,25 +9,39 @@ import (
 )
 
 func search() {
+	// Prompt for Search Input
 	fmt.Printf("XIVAPI Search:")
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Scan()
 	usersearchinput := scanner.Text()
-	//Searches the item, and put the json into an array.
+	//Takes user input, convert it into the url, and searches through the json.
 	xivapi.SearchItem(xivapi.UrlSearch(usersearchinput))
+	// Output: Array of objects that have the itemID and item icon, and item/recipe type.
+
+	// Items are meant to be information for
+	/*
+			  "GameContentLinks": {
+		        "Recipe": {
+		            "ItemResult": [
+		                33180
+		            ]
+		        }
+			},*/
+	// To be able to find Item Recipes. If null, then it's a base item.
 }
 func choose() {
 	//After finding the results, and user chooses put the item ID into here.
-	fmt.Printf("ItemID:")
+	fmt.Printf("Item/RecipeID:")
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Scan()
 	useriteminput := scanner.Text()
-	fmt.Printf("Item/Recipe:")
+	//And identify whether this id is a recipe or item id
+	fmt.Printf("Is it Item or Recipe:")
 	scanner.Scan()
 	userchoiceinput := scanner.Text()
+	// Convert input into a url, then output the url string
 	testitem := xivapi.UrlRecipe(userchoiceinput, useriteminput)
-
-	//We need to use the GET request, and put JSON data into the database.
+	//We need to use the GET request on the url, and put JSON data into the database.
 	xivapi.GetRecipe(testitem)
 }
 

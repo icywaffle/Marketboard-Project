@@ -1,5 +1,3 @@
-// Converts Recipe Pages of json, to arrays.
-
 package xivapi
 
 import (
@@ -16,6 +14,8 @@ import (
 	"net/http"
 	// Converts ints to strings etc.
 )
+
+// Converts Recipe Pages of json, to arrays.
 
 type Recipe struct {
 	Name               string `json:"Name"`
