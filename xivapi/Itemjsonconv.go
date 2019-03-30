@@ -43,15 +43,15 @@ func GetItem(itemjson string) {
 
 	var items Item
 	json.Unmarshal(byteValue, &items)
-	itemarray := make([]string, 10)
-	Jsontoarray(items, itemarray)
+	itemslice := make([]string, 10)
+	Jsontoslice(items, itemslice)
 	fmt.Println(items)
 
 	// Shows the recipeIDs that can craft this item.
 	var links Link
 	json.Unmarshal(byteValue, &links)
-	linksarray := make([]string, 10)
-	Jsontoarray(links, linksarray)
+	linksslice := make([]string, 10)
+	Jsontoslice(links, linksslice)
 	fmt.Println(links)
 
 }

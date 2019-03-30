@@ -97,13 +97,13 @@ type IngredientRecipe struct {
 	} `json:"ItemIngredientRecipe9"`
 }
 
-// This function allows us to pass these awful structs into this function and obtain a clean array.
-func Jsontoarray(anystruct interface{}, arrayname []string) {
+// This function allows us to pass these awful structs into this function and obtain a clean slice.
+func Jsontoslice(anystruct interface{}, slicename []string) {
 	r_any := reflect.ValueOf(anystruct)
 	n_any := r_any.NumField()
-	arrayname = arrayname[:n_any]
+	slicename = slicename[:n_any] //Resize the slice to fit the number of fields.
 	for i := 0; i < n_any; i++ {
-		arrayname[i] = fmt.Sprintf(`%v`, r_any.Field(i))
+		slicename[i] = fmt.Sprintf(`%v`, r_any.Field(i))
 	}
 }
 
@@ -126,20 +126,20 @@ func GetRecipe(itemjson string) {
 
 	var amount AmountIngredient
 	json.Unmarshal(byteValue, &amount)
-	amountarray := make([]string, 10) // Initializes an array
-	Jsontoarray(amount, amountarray)  // <- Accesses Array Elements.
-	fmt.Println(amountarray)          // Prints out the array.
+	amountslice := make([]string, 10) // Initializes a Slice
+	Jsontoslice(amount, amountslice)  // <- Accesses Slice Elements.
+	fmt.Println(amountslice)          // Prints out the slice.
 
 	var matitemID ItemIngredient
 	json.Unmarshal(byteValue, &matitemID)
-	matitemIDarray := make([]string, 10)
-	Jsontoarray(matitemID, matitemIDarray)
-	fmt.Println(matitemIDarray)
+	matitemIDslice := make([]string, 10)
+	Jsontoslice(matitemID, matitemIDslice)
+	fmt.Println(matitemIDslice)
 
 	var matrecipeID IngredientRecipe
 	json.Unmarshal(byteValue, &matrecipeID)
-	matrecipeIDarray := make([]string, 10)
-	Jsontoarray(matrecipeID, matrecipeIDarray)
-	fmt.Println(matrecipeIDarray)
+	matrecipeIDslice := make([]string, 10)
+	Jsontoslice(matrecipeID, matrecipeIDslice)
+	fmt.Println(matrecipeIDslice)
 
 }
