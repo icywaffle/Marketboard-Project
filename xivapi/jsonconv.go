@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"fmt" // Println etc.
 	"io/ioutil"
+	"strconv"
 	"strings"
+	"time"
 
 	// Converts jsonFile into a byteValue, which is our byte array.
 	"reflect"
@@ -103,6 +105,7 @@ type IngredientRecipe struct {
 type Item struct {
 	Name             string `json:"Name"`
 	ID               int    `json:"ID"`
+	Icon             string `json:"Icon"`
 	GameContentLinks struct {
 		Recipe struct {
 			ItemResult []int `json:"ItemResult"`
@@ -123,6 +126,10 @@ func Jsontoslice(anystruct interface{}, slicename []string) {
 }
 
 func Get(itemjson string, userchoiceinput string) {
+	// MAX Rate limit is 20 Req/s -> 0.066s/Req
+	time.Sleep(60 * time.Millisecond)
+	// TODO: Use a channel to rate limit instead
+
 	//What this does, is open the file, and read it
 	jsonFile, err := http.Get(itemjson)
 	if err != nil {
@@ -156,24 +163,32 @@ func Get(itemjson string, userchoiceinput string) {
 		json.Unmarshal(byteValue, &matrecipeID)
 		matrecipeIDslice := make([]string, 10)
 		Jsontoslice(matrecipeID, matrecipeIDslice)
-		fmt.Println(matrecipeIDslice)
 
 		// Check if it's ingredient is a base item.
 		// If the length of the element is > 2, it must have recipes inside of it.
 		// Else, it's a base ingredient and we don't need any more information.
+		// Ex: matrecipeIDslice = [[{1 14146} {2 14146}] [{4 14155}] [{3 14149}] [] [] [] [] [] [] []]
+		// Empty arrays have length of 2.
 		n := len(matrecipeIDslice)
 		for i := 0; i < n; i++ {
 			if len(matrecipeIDslice[i]) > 2 {
 				// An ingredient has a recipe, we pass the ID, back into the function and redo.
-				itemurl := UrlRecipe("item", strings.Trim(fmt.Sprintf(matitemIDslice[i]), "[]"))
+				fmt.Println("materialID:", matitemIDslice[i])
+				itemID := strings.Trim(fmt.Sprintf(matitemIDslice[i]), "[]")
+				itemurl := UrlRecipe("item", itemID)
 				Get(itemurl, "item")
-				fmt.Println(itemurl)
 			}
 		}
 	} else if userchoiceinput == "item" {
 		var items Item
 		json.Unmarshal(byteValue, &items)
-		//fmt.Println(items.Name, items.ID)
-		fmt.Println(items.GameContentLinks.Recipe.ItemResult)
-	}
+		// We need to iterate over the elements of the array
+		n := len(items.GameContentLinks.Recipe.ItemResult)
+		for i := 0; i < n; i++ {
+			recipeID := strconv.Itoa(items.GameContentLinks.Recipe.ItemResult[i])
+			recipeurl := UrlRecipe("recipe", recipeID)
+			fmt.Println("matrecipeID:", recipeID)
+			Get(recipeurl, "recipe")
+		}
+	} // TODO: Store these array information into a caching layer, which we can call instead of calling the server for the same pages over and over etc.
 }
