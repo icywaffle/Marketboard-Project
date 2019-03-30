@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt" // Println etc.
 	"io/ioutil"
+	"strings"
 
 	// Converts jsonFile into a byteValue, which is our byte array.
 	"reflect"
@@ -99,6 +100,16 @@ type IngredientRecipe struct {
 	} `json:"ItemIngredientRecipe9"`
 }
 
+type Item struct {
+	Name             string `json:"Name"`
+	ID               int    `json:"ID"`
+	GameContentLinks struct {
+		Recipe struct {
+			ItemResult []int `json:"ItemResult"`
+		} `json:"Recipe"`
+	} `json:"GameContentLinks"`
+}
+
 // This function allows us to pass these awful structs into this function and obtain a clean slice.
 func Jsontoslice(anystruct interface{}, slicename []string) {
 	r_any := reflect.ValueOf(anystruct)
@@ -111,7 +122,7 @@ func Jsontoslice(anystruct interface{}, slicename []string) {
 	// Don't know if it can put ints into the slice element instead.
 }
 
-func GetRecipe(itemjson string) {
+func Get(itemjson string, userchoiceinput string) {
 	//What this does, is open the file, and read it
 	jsonFile, err := http.Get(itemjson)
 	if err != nil {
@@ -128,31 +139,41 @@ func GetRecipe(itemjson string) {
 	json.Unmarshal(byteValue, &recipeinfo)
 	// Can directly access children of structs.
 
-	var amount AmountIngredient
-	json.Unmarshal(byteValue, &amount)
-	amountslice := make([]string, 10) // Initializes a Slice
-	Jsontoslice(amount, amountslice)  // <- Accesses Slice Elements.
-	fmt.Println(amountslice)          // Prints out the slice.
+	if userchoiceinput == "recipe" {
+		var amount AmountIngredient
+		json.Unmarshal(byteValue, &amount)
+		amountslice := make([]string, 10) // Initializes a Slice
+		Jsontoslice(amount, amountslice)  // <- Accesses Slice Elements.
+		fmt.Println(amountslice)          // Prints out the slice.
 
-	var matitemID ItemIngredient
-	json.Unmarshal(byteValue, &matitemID)
-	matitemIDslice := make([]string, 10)
-	Jsontoslice(matitemID, matitemIDslice)
-	fmt.Println(matitemIDslice)
+		var matitemID ItemIngredient
+		json.Unmarshal(byteValue, &matitemID)
+		matitemIDslice := make([]string, 10)
+		Jsontoslice(matitemID, matitemIDslice)
+		fmt.Println(matitemIDslice)
 
-	var matrecipeID IngredientRecipe
-	json.Unmarshal(byteValue, &matrecipeID)
-	matrecipeIDslice := make([]string, 10)
-	Jsontoslice(matrecipeID, matrecipeIDslice)
-	fmt.Println(matrecipeIDslice)
+		var matrecipeID IngredientRecipe
+		json.Unmarshal(byteValue, &matrecipeID)
+		matrecipeIDslice := make([]string, 10)
+		Jsontoslice(matrecipeID, matrecipeIDslice)
+		fmt.Println(matrecipeIDslice)
 
-	// Check if it's ingredient is a base item.
-	// If the length of the element is > 2, it must have recipes inside of it.
-	// Else, it's a base ingredient and we don't need any more information.
-	n := len(matrecipeIDslice)
-	for i := 0; i < n; i++ {
-		if len(matrecipeIDslice[i]) > 2 {
-			GetItem(UrlRecipe("item", matrecipeIDslice[i]))
+		// Check if it's ingredient is a base item.
+		// If the length of the element is > 2, it must have recipes inside of it.
+		// Else, it's a base ingredient and we don't need any more information.
+		n := len(matrecipeIDslice)
+		for i := 0; i < n; i++ {
+			if len(matrecipeIDslice[i]) > 2 {
+				// An ingredient has a recipe, we pass the ID, back into the function and redo.
+				itemurl := UrlRecipe("item", strings.Trim(fmt.Sprintf(matitemIDslice[i]), "[]"))
+				Get(itemurl, "item")
+				fmt.Println(itemurl)
+			}
 		}
+	} else if userchoiceinput == "item" {
+		var items Item
+		json.Unmarshal(byteValue, &items)
+		//fmt.Println(items.Name, items.ID)
+		fmt.Println(items.GameContentLinks.Recipe.ItemResult)
 	}
 }

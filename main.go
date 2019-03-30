@@ -38,9 +38,9 @@ func chooseRecipe() {
 	//And identify whether this id is a recipe or item id
 	userchoiceinput := "recipe"
 	// Convert input into a url, then output the url string
-	testitem := xivapi.UrlRecipe(userchoiceinput, useriteminput)
+	itemurl := xivapi.UrlRecipe(userchoiceinput, useriteminput)
 	//We need to use the GET request on the url, and put JSON data into the database.
-	xivapi.GetRecipe(testitem)
+	xivapi.Get(itemurl, userchoiceinput)
 }
 func chooseItem() {
 	//After finding the results, and user chooses put the item ID into here.
@@ -50,9 +50,9 @@ func chooseItem() {
 	useriteminput := scanner.Text()
 	userchoiceinput := "item"
 	// Convert input into a url, then output the url string
-	testitem := xivapi.UrlRecipe(userchoiceinput, useriteminput)
+	itemurl := xivapi.UrlRecipe(userchoiceinput, useriteminput)
 	//We need to use the GET request on the url, and put JSON data into the database.
-	xivapi.GetItem(testitem)
+	xivapi.Get(itemurl, userchoiceinput)
 }
 
 func main() {
