@@ -21,7 +21,6 @@ type Recipe struct {
 	Name               string `json:"Name"`
 	ItemResultTargetID int    `json:"ItemResultTargetID"`
 	ID                 int    `json:"ID"`
-	Url                string `json:"Url"`
 	CraftType          struct {
 		ID int `json:"ID"`
 	} `json:"CraftType"`
@@ -99,12 +98,12 @@ type IngredientRecipe struct {
 }
 
 // This function allows us to pass these awful structs into this function and obtain a clean array.
-func Jsontoarray(anystruct interface{}) {
+func Jsontoarray(anystruct interface{}, arrayname []string) {
 	r_any := reflect.ValueOf(anystruct)
 	n_any := r_any.NumField()
-	newarray := make([]string, n_any)
+	arrayname = arrayname[:n_any]
 	for i := 0; i < n_any; i++ {
-		newarray[i] = fmt.Sprintf(`%v`, r_any.Field(i))
+		arrayname[i] = fmt.Sprintf(`%v`, r_any.Field(i))
 	}
 }
 
@@ -121,9 +120,26 @@ func GetRecipe(itemjson string) {
 	}
 	defer jsonFile.Body.Close()
 
+	var recipeinfo Recipe
+	json.Unmarshal(byteValue, &recipeinfo)
+	// Can directly access children of structs.
+
 	var amount AmountIngredient
 	json.Unmarshal(byteValue, &amount)
-	Jsontoarray(amount)
-	fmt.Println(amount)
+	amountarray := make([]string, 10) // Initializes an array
+	Jsontoarray(amount, amountarray)  // <- Accesses Array Elements.
+	fmt.Println(amountarray)          // Prints out the array.
+
+	var matitemID ItemIngredient
+	json.Unmarshal(byteValue, &matitemID)
+	matitemIDarray := make([]string, 10)
+	Jsontoarray(matitemID, matitemIDarray)
+	fmt.Println(matitemIDarray)
+
+	var matrecipeID IngredientRecipe
+	json.Unmarshal(byteValue, &matrecipeID)
+	matrecipeIDarray := make([]string, 10)
+	Jsontoarray(matrecipeID, matrecipeIDarray)
+	fmt.Println(matrecipeIDarray)
 
 }

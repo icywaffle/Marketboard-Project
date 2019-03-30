@@ -34,6 +34,7 @@ Goals
         Now, how do I make that item? *Interaction Here.
         What is the trend of this profit? Was it higher yesterday?
 
+
 APIs
     1. XIVAPI
         /Recipe/(itemID)
@@ -66,7 +67,28 @@ functions
             Crawl requests need to be done at least once a day.
             If data is one day old, request again.
             We can keep the time data in the database.
-
+Structure
+// Current Status: Able to search, run, and obtain the Amount of ingredients, and ingredients of items
+	// TODO: Add access to the array elements now that you have what you need.
+	
+	//
+	// First -> We need to get all of the base ingredients of the full Recipe.
+		/*
+			Seeing Horde Axe
+				High Mythrite Ingot -> Two lists
+					Eikon Mythrite
+					Lumythrite Ore
+					Mythrite Ore
+					Fire Cluster
+					Earth Cluster
+				Eikon Leather
+				Eikon Iron Ingot
+				Nidhogg's Scale
+				Demicrystal
+				Fire Cluster
+				Earth Cluster
+		*/
+		
 
 Database Design
     Using SQL

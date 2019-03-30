@@ -79,5 +79,4 @@ func main() {
 		}
 	}
 
-	// Current Status: Able to search, run, and obtain the Amount of ingredients, and ingredients of items
 }
