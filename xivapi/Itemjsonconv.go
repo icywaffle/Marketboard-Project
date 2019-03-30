@@ -2,7 +2,6 @@ package xivapi
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -17,10 +16,8 @@ import (
 // Converts ints to strings etc.
 
 type Item struct {
-	Name string `json:"Name"`
-	ID   int    `json:"ID"`
-}
-type Link struct {
+	Name             string `json:"Name"`
+	ID               int    `json:"ID"`
 	GameContentLinks struct {
 		Recipe struct {
 			ItemResult []int `json:"ItemResult"`
@@ -43,15 +40,7 @@ func GetItem(itemjson string) {
 
 	var items Item
 	json.Unmarshal(byteValue, &items)
-	itemslice := make([]string, 10)
-	Jsontoslice(items, itemslice)
-	fmt.Println(items)
-
-	// Shows the recipeIDs that can craft this item.
-	var links Link
-	json.Unmarshal(byteValue, &links)
-	linksslice := make([]string, 10)
-	Jsontoslice(links, linksslice)
-	fmt.Println(links)
+	//fmt.Println(items.Name, items.ID)
+	//fmt.Println(items.GameContentLinks.Recipe.ItemResult)
 
 }

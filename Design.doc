@@ -33,46 +33,11 @@ Goals
         Cool. I know what item makes a profit.
         Now, how do I make that item? *Interaction Here.
         What is the trend of this profit? Was it higher yesterday?
-
-
-APIs
-    1. XIVAPI
-        /Recipe/(itemID)
-            This gives the recipe for the item that is searched.
-            How to find the item?
-        /search?string=some+named+item
-            This searches for the strings of related items. However, we still need to go through and find the ID of our item of request.
-            In order to confirm the item that is requested, we need the user to confirm the item through this list.
-
-functions
-    1. Cache Layering Get requests.
-    2. Search Function: Allow user to search for an item (String Append again), using XIVAPI.
-        Search Function.
-        https://xivapi.com/search?string=eikon+mythrite&pretty=1&key=
-        Append to the string= term, and change spaces to +.
-            We want to search for an item.
-            User must pick the right item.
-            So we need to display the icon, and the name.
-            Then we choose the item, not the recipe.
-                The item will tell us the recipe ids.
-
-    3. Calculating Functions. We need to calculate sums etc.
-        Sum of P_mats
-        P_total = Current Selling Price
-    4. Current Selling Price function.
-            Now, some people may sell for a terrible price by accident. We need to find the error function.
-            Therefore, if someone sold an item at a threshold that's lower, we can ignore that price.
-            But how big should the threshold be? Etc
-    5. Crawl Requests to crawl whenever we check up on an item.
-            Crawl requests need to be done at least once a day.
-            If data is one day old, request again.
-            We can keep the time data in the database.
 Structure
-// Current Status: Able to search, run, and obtain the Amount of ingredients, and ingredients of items
 	// TODO: Add access to the array elements now that you have what you need.
 	
-	//
-	// First -> We need to get all of the base ingredients of the full Recipe.
+	// Search for some item, you want to craft.
+	// Next -> We need to get all of the base ingredients of the full Recipe.
 		/*
 			Seeing Horde Axe
 				High Mythrite Ingot -> Two lists
@@ -88,8 +53,43 @@ Structure
 				Fire Cluster
 				Earth Cluster
 		*/
-		
+        Once we have the first layer of materials information 
+            We need to iterate through and search if they are base items or not.
+            If this array
+            type Link struct {
+	            GameContentLinks struct {
+		            Recipe struct {
+		            	ItemResult []int `json:"ItemResult"`
+		            } `json:"Recipe"`
+	            } `json:"GameContentLinks"`
+            }
+            Is a null array, then we no longer have to check through.
 
+        We need to think about how to store the information first.
+            First iteration:
+                Recipejsonconv.go
+                Search for the recipe
+                    [Name,ItemResultTargetID,RecipeID,Url,CraftTypeID]
+
+                    Need to pair these three arrays together.
+                    [AmountIngred0,1,2,3,4,5,6,7,8,9]
+                    [ItemID0,1,2,3,4,5,6,7,8,9]
+                    [IngredientRecipe0,1,2,3,4,5,6,7,8,9]
+                    With elements
+                        RecipeID
+                        CraftTypeID
+                        IngredientID
+                        If null, then it's a base item. No more need to search
+                            There may be multiple ingredient recipes for one. Just present all of them for the user choice.
+                            Therefore, we have to go into the RecipeID and repeat.
+                            -> Loop: 
+                                Take the json into an array. (xivapi.GetRecipe(itemjson string))
+                                Check IngredientRecipes (iterate through the Ingredient Recipe Array)
+                                If there is a recipe, repeat. (if array element =/= null, repeat, else quit)
+                                Else, we have the information we need. (Print out the current information: this will be used in parallel with the database)
+                        
+                    Each IngredientID and ItemResultTargetID will have a price in the database.
+                    Todo this we need to learn data structures.
 Database Design
     Using SQL
         All we need, is to keep the price history.

@@ -15,6 +15,8 @@ import (
 	// Converts ints to strings etc.
 )
 
+const SIZEOF_INT32 = 4 // bytes
+
 // Converts Recipe Pages of json, to arrays.
 
 type Recipe struct {
@@ -105,6 +107,8 @@ func Jsontoslice(anystruct interface{}, slicename []string) {
 	for i := 0; i < n_any; i++ {
 		slicename[i] = fmt.Sprintf(`%v`, r_any.Field(i))
 	}
+	// Unfortunately, array elements are strings instead of ints.
+	// Don't know if it can put ints into the slice element instead.
 }
 
 func GetRecipe(itemjson string) {
@@ -142,4 +146,13 @@ func GetRecipe(itemjson string) {
 	Jsontoslice(matrecipeID, matrecipeIDslice)
 	fmt.Println(matrecipeIDslice)
 
+	// Check if it's ingredient is a base item.
+	// If the length of the element is > 2, it must have recipes inside of it.
+	// Else, it's a base ingredient and we don't need any more information.
+	n := len(matrecipeIDslice)
+	for i := 0; i < n; i++ {
+		if len(matrecipeIDslice[i]) > 2 {
+			GetItem(UrlRecipe("item", matrecipeIDslice[i]))
+		}
+	}
 }

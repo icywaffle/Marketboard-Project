@@ -3,7 +3,6 @@
 package xivapi
 
 import (
-	"fmt"
 	"strings"
 
 	getKeys "./keys"
@@ -29,8 +28,6 @@ func UrlRecipe(userfield string, useruniqueID string) string {
 	websiteurl := append(append(userinputurl[:], '?'), authkey[:]...)
 
 	s := string(websiteurl)
-	fmt.Println(s)
-
 	return s
 }
 
@@ -47,7 +44,5 @@ func UrlSearch(usersearch string) string {
 	websiteurl := append(userinputurl[:], authkey[:]...)
 
 	s := string(websiteurl)
-	fmt.Println(s)
-
 	return s
 }

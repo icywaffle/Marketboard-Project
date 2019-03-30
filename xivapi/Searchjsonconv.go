@@ -4,7 +4,6 @@ import (
 	"encoding/json" // Passes the byteValue to our struct.
 	"fmt"           // Println etc.
 	"io/ioutil"
-	"reflect"
 
 	// Converts jsonFile into a byteValue, which is our byte array.
 
@@ -23,10 +22,6 @@ type SearchPages struct {
 		ResultsTotal   int `json:"ResultsTotal"`
 		ResultsPerPage int `json:"ResultsPerPage"`
 	} `json:"Pagination"`
-}
-
-// Outer Container
-type SearchResults struct {
 	Results []struct {
 		ID      int    `json:"ID"`
 		Name    string `json:"Name"`
@@ -62,14 +57,6 @@ func SearchItem(itemsearchjson string) {
 
 	// Search Results Information
 	// Arrayed in order to flexibily add items to the search results
-	var search SearchResults
-	json.Unmarshal(byteValue, &search)
-	r_search := reflect.ValueOf(search)
-	n_search := r_search.NumField()
-	SearchResults := make([]string, n_search)
-	for i := 0; i < n_search; i++ {
-		SearchResults[i] = fmt.Sprintf(`%v`, r_search.Field(i))
-	}
-	fmt.Println(SearchResults) // Output element = [{Recipe for ingredient} {other recipe for ingredient}]
+	fmt.Println(pages.Results) // Output Array of information.
 
 }
