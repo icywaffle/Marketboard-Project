@@ -21,6 +21,7 @@ const SIZEOF_INT32 = 4 // bytes
 
 // Converts Recipe Pages of json, to arrays.
 
+/////////////////Recipe Struct Here//////////////////////////
 type Recipe struct {
 	Name               string `json:"Name"`
 	ItemResultTargetID int    `json:"ItemResultTargetID"`
@@ -91,6 +92,7 @@ type IngredientRecipe struct {
 	} `json:"ItemIngredientRecipe9"`
 }
 
+//////////////////Item Struct Here////////////////////////////
 type Item struct {
 	Name string `json:"Name"`
 	ID   int    `json:"ID"`
@@ -157,11 +159,17 @@ func Get(itemjson string, userchoiceinput string) {
 		for i := 0; i < n; i++ {
 			if len(matrecipeIDslice[i]) > 2 {
 				// An ingredient has a recipe, we pass the ID, back into the function and redo.
-				fmt.Println(matitemIDslice[i], matrecipeIDslice[i], i)
-				match(matrecipeIDslice[i])
+				fmt.Println("MatID:", matitemIDslice[i], "Mat#", i)
+				for j := 0; j < len(match(matrecipeIDslice[i])); j++ {
+					matrecipeurl := UrlRecipe("recipe", match(matrecipeIDslice[i])[j])
+					fmt.Println("MatRecipeID:", match(matrecipeIDslice[i])[j])
+					Get(matrecipeurl, "recipe")
+
+				}
 			}
 		}
-		// If all we have is itemIDs, we need to search for the possible RecipeID.
+
+		//This is for requesting information about an item.
 	} else if userchoiceinput == "item" {
 		var items Item
 		json.Unmarshal(byteValue, &items)
@@ -170,40 +178,26 @@ func Get(itemjson string, userchoiceinput string) {
 	} // TODO: Store these array information into a caching layer, which we can call instead of calling the server for the same pages over and over etc.
 }
 
-func match(input string) {
-	for {
+// Allows us to change the awkward array elements, which are outputted as an entire string, into a cleaner array with actual elements.
+func match(input string) []string {
+	n := 10 // Temporary declare
+	tempslice := make([]string, n)
+	for i := 0; i < n; i++ {
 		starting := strings.Index(input, "{") // Will return the indext of the first instance.
 		ending := strings.Index(input[starting:], "}")
-		fmt.Println(starting, ending)
 
 		if starting >= 0 {
 			if ending >= 0 {
+				n = i + 2 // If we are iterating into here, then we need to change the slice size to add one more.
 				result := input[starting+1 : ending+1]
-				fmt.Println(result)
+				tempslice[i] = result
 				if len(input) != 9 { // Length of input = 9 , means that there's only one ID!
 					input = input[ending+2:]
-					fmt.Println(input)
 				} else {
-					break
+					return tempslice[:n-1]
 				}
 			}
 		}
 	}
-
-	/*
-		for i := 0; i < 15; i++ {
-			if starting >= 0 { // If we find start index, then iterate
-				if ending >= 0 { //  If we find end index, then finish
-					result[i] = input[starting+1 : ending+1]
-					// cut the string off, and do it again.
-
-				}
-			} else {
-				result[i] = ""
-			}
-		}
-		// To end, we are unable to find any more -> {
-		// result[i] has a set length.
-		return result
-	*/
+	return tempslice[:n-1]
 }
