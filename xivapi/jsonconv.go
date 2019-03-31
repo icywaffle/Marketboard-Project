@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt" // Println etc.
 	"io/ioutil"
-	"strconv"
 	"strings"
 	"time"
 
@@ -61,56 +60,41 @@ type ItemIngredient struct {
 // Outer Container
 type IngredientRecipe struct {
 	ItemIngredientRecipe0 []struct {
-		CraftTypeTargetID  int `json:"CraftTypeTargetID"`
-		ItemResultTargetID int `json:"ItemResultTargetID"`
+		ID int `json:"ID"`
 	} `json:"ItemIngredientRecipe0"`
 	ItemIngredientRecipe1 []struct {
-		CraftTypeTargetID  int `json:"CraftTypeTargetID"`
-		ItemResultTargetID int `json:"ItemResultTargetID"`
+		ID int `json:"ID"`
 	} `json:"ItemIngredientRecipe1"`
 	ItemIngredientRecipe2 []struct {
-		CraftTypeTargetID  int `json:"CraftTypeTargetID"`
-		ItemResultTargetID int `json:"ItemResultTargetID"`
+		ID int `json:"ID"`
 	} `json:"ItemIngredientRecipe2"`
 	ItemIngredientRecipe3 []struct {
-		CraftTypeTargetID  int `json:"CraftTypeTargetID"`
-		ItemResultTargetID int `json:"ItemResultTargetID"`
+		ID int `json:"ID"`
 	} `json:"ItemIngredientRecipe3"`
 	ItemIngredientRecipe4 []struct {
-		CraftTypeTargetID  int `json:"CraftTypeTargetID"`
-		ItemResultTargetID int `json:"ItemResultTargetID"`
+		ID int `json:"ID"`
 	} `json:"ItemIngredientRecipe4"`
 	ItemIngredientRecipe5 []struct {
-		CraftTypeTargetID  int `json:"CraftTypeTargetID"`
-		ItemResultTargetID int `json:"ItemResultTargetID"`
+		ID int `json:"ID"`
 	} `json:"ItemIngredientRecipe5"`
 	ItemIngredientRecipe6 []struct {
-		CraftTypeTargetID  int `json:"CraftTypeTargetID"`
-		ItemResultTargetID int `json:"ItemResultTargetID"`
+		ID int `json:"ID"`
 	} `json:"ItemIngredientRecipe6"`
 	ItemIngredientRecipe7 []struct {
-		CraftTypeTargetID  int `json:"CraftTypeTargetID"`
-		ItemResultTargetID int `json:"ItemResultTargetID"`
+		ID int `json:"ID"`
 	} `json:"ItemIngredientRecipe7"`
 	ItemIngredientRecipe8 []struct {
-		CraftTypeTargetID  int `json:"CraftTypeTargetID"`
-		ItemResultTargetID int `json:"ItemResultTargetID"`
+		ID int `json:"ID"`
 	} `json:"ItemIngredientRecipe8"`
 	ItemIngredientRecipe9 []struct {
-		CraftTypeTargetID  int `json:"CraftTypeTargetID"`
-		ItemResultTargetID int `json:"ItemResultTargetID"`
+		ID int `json:"ID"`
 	} `json:"ItemIngredientRecipe9"`
 }
 
 type Item struct {
-	Name             string `json:"Name"`
-	ID               int    `json:"ID"`
-	Icon             string `json:"Icon"`
-	GameContentLinks struct {
-		Recipe struct {
-			ItemResult []int `json:"ItemResult"`
-		} `json:"Recipe"`
-	} `json:"GameContentLinks"`
+	Name string `json:"Name"`
+	ID   int    `json:"ID"`
+	Icon string `json:"Icon"`
 }
 
 // This function allows us to pass these awful structs into this function and obtain a clean slice.
@@ -142,9 +126,9 @@ func Get(itemjson string, userchoiceinput string) {
 	}
 	defer jsonFile.Body.Close()
 
+	// Then unmarshals the byteValues into the struct.
 	var recipeinfo Recipe
 	json.Unmarshal(byteValue, &recipeinfo)
-	// Can directly access children of structs.
 
 	if userchoiceinput == "recipe" {
 		var amount AmountIngredient
@@ -167,28 +151,59 @@ func Get(itemjson string, userchoiceinput string) {
 		// Check if it's ingredient is a base item.
 		// If the length of the element is > 2, it must have recipes inside of it.
 		// Else, it's a base ingredient and we don't need any more information.
-		// Ex: matrecipeIDslice = [[{1 14146} {2 14146}] [{4 14155}] [{3 14149}] [] [] [] [] [] [] []]
+		// Ex: matrecipeIDslice = [[{31482} {31843}] [{31486}] [{31484}] [] [] [] [] [] [] []]
 		// Empty arrays have length of 2.
 		n := len(matrecipeIDslice)
 		for i := 0; i < n; i++ {
 			if len(matrecipeIDslice[i]) > 2 {
 				// An ingredient has a recipe, we pass the ID, back into the function and redo.
-				fmt.Println("materialID:", matitemIDslice[i])
-				itemID := strings.Trim(fmt.Sprintf(matitemIDslice[i]), "[]")
-				itemurl := UrlRecipe("item", itemID)
-				Get(itemurl, "item")
+				fmt.Println(matitemIDslice[i], matrecipeIDslice[i], i)
+				match(matrecipeIDslice[i])
 			}
 		}
+		// If all we have is itemIDs, we need to search for the possible RecipeID.
 	} else if userchoiceinput == "item" {
 		var items Item
 		json.Unmarshal(byteValue, &items)
 		// We need to iterate over the elements of the array
-		n := len(items.GameContentLinks.Recipe.ItemResult)
-		for i := 0; i < n; i++ {
-			recipeID := strconv.Itoa(items.GameContentLinks.Recipe.ItemResult[i])
-			recipeurl := UrlRecipe("recipe", recipeID)
-			fmt.Println("matrecipeID:", recipeID)
-			Get(recipeurl, "recipe")
-		}
+		fmt.Println(items.ID, items.Icon, items.Name)
 	} // TODO: Store these array information into a caching layer, which we can call instead of calling the server for the same pages over and over etc.
+}
+
+func match(input string) {
+	for {
+		starting := strings.Index(input, "{") // Will return the indext of the first instance.
+		ending := strings.Index(input[starting:], "}")
+		fmt.Println(starting, ending)
+
+		if starting >= 0 {
+			if ending >= 0 {
+				result := input[starting+1 : ending+1]
+				fmt.Println(result)
+				if len(input) != 9 { // Length of input = 9 , means that there's only one ID!
+					input = input[ending+2:]
+					fmt.Println(input)
+				} else {
+					break
+				}
+			}
+		}
+	}
+
+	/*
+		for i := 0; i < 15; i++ {
+			if starting >= 0 { // If we find start index, then iterate
+				if ending >= 0 { //  If we find end index, then finish
+					result[i] = input[starting+1 : ending+1]
+					// cut the string off, and do it again.
+
+				}
+			} else {
+				result[i] = ""
+			}
+		}
+		// To end, we are unable to find any more -> {
+		// result[i] has a set length.
+		return result
+	*/
 }
