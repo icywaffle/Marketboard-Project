@@ -112,9 +112,10 @@ func Jsontoslice(anystruct interface{}, slicename []string) {
 }
 
 func Get(itemjson string, userchoiceinput string) {
-	// MAX Rate limit is 20 Req/s -> 0.066s/Req
+	// MAX Rate limit is 20 Req/s -> 0.05s/Req, but safer to use 15req/s -> 0.06s/req
 	time.Sleep(60 * time.Millisecond)
-	// TODO: Use a channel to rate limit instead
+	// This ensures that when this function is called, it does not exceed the rate limit.
+	// TODO: Use a channel to rate limit instead to allow multiple users to use this.
 
 	//What this does, is open the file, and read it
 	jsonFile, err := http.Get(itemjson)
@@ -159,12 +160,12 @@ func Get(itemjson string, userchoiceinput string) {
 		for i := 0; i < n; i++ {
 			if len(matrecipeIDslice[i]) > 2 {
 				// An ingredient has a recipe, we pass the ID, back into the function and redo.
-				fmt.Println("MatID:", matitemIDslice[i], "Mat#", i)
+				// Unfortunately these array elements are entirely string, and must be separated.
+				fmt.Println("MatID:", matitemIDslice[i], "Matforingredient#", i)
 				for j := 0; j < len(match(matrecipeIDslice[i])); j++ {
 					matrecipeurl := UrlRecipe("recipe", match(matrecipeIDslice[i])[j])
 					fmt.Println("MatRecipeID:", match(matrecipeIDslice[i])[j])
 					Get(matrecipeurl, "recipe")
-
 				}
 			}
 		}
@@ -188,7 +189,7 @@ func match(input string) []string {
 
 		if starting >= 0 {
 			if ending >= 0 {
-				n = i + 2 // If we are iterating into here, then we need to change the slice size to add one more.
+				n = i + 2 // If we are iterating into here, it means we have more elements, then we need to change the for loop to add one more iteration.
 				result := input[starting+1 : ending+1]
 				tempslice[i] = result
 				if len(input) != 9 { // Length of input = 9 , means that there's only one ID!
