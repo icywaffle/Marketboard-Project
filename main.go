@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	database "./database"
 	xivapi "./xivapi"
 )
 
@@ -77,6 +78,8 @@ func main() {
 			chooseItem()
 		case 4:
 			os.Exit(1)
+		case 5:
+			database.MongoHandler()
 		default:
 			fmt.Println("Invalid Case Selected.")
 			continue

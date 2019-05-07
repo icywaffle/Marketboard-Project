@@ -24,8 +24,8 @@ const SIZEOF_INT32 = 4 // bytes
 /////////////////Recipe Struct Here//////////////////////////
 type Recipe struct {
 	Name               string `json:"Name"`
-	ItemResultTargetID int    `json:"ItemResultTargetID"`
-	ID                 int    `json:"ID"`
+	ItemResultTargetID int    `json:"ItemResultTargetID"` // This is the Item ID
+	ID                 int    `json:"ID"`                 // This is the recipeID
 	CraftType          struct {
 		ID int `json:"ID"`
 	} `json:"CraftType"`
@@ -118,6 +118,8 @@ func Get(itemjson string, userchoiceinput string) {
 	// TODO: Use a channel to rate limit instead to allow multiple users to use this.
 
 	//What this does, is open the file, and read it
+	//TODO : At this point, we need an if statement to check if we have the data or not.
+	// If we do, then there's no need to http.Get
 	jsonFile, err := http.Get(itemjson)
 	if err != nil {
 		log.Fatalln(err)
@@ -165,6 +167,7 @@ func Get(itemjson string, userchoiceinput string) {
 				for j := 0; j < len(match(matrecipeIDslice[i])); j++ {
 					matrecipeurl := UrlRecipe("recipe", match(matrecipeIDslice[i])[j])
 					fmt.Println("MatRecipeID:", match(matrecipeIDslice[i])[j])
+					// We need to get an the recipe for every material(element) if they have one.
 					Get(matrecipeurl, "recipe")
 				}
 			}
@@ -181,7 +184,7 @@ func Get(itemjson string, userchoiceinput string) {
 
 // Allows us to change the awkward array elements, which are outputted as an entire string, into a cleaner array with actual elements.
 func match(input string) []string {
-	n := 10 // Temporary declare
+	n := 10 // Temporary declare in order to keep slices in range
 	tempslice := make([]string, n)
 	for i := 0; i < n; i++ {
 		starting := strings.Index(input, "{") // Will return the indext of the first instance.
