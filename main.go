@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 
-	database "./database"
 	xivapi "./xivapi"
 )
 
@@ -41,7 +40,7 @@ func chooseRecipe() {
 	// Convert input into a url, then output the url string
 	itemurl := xivapi.UrlRecipe(userchoiceinput, useriteminput)
 	//We need to use the GET request on the url, and put JSON data into the database.
-	xivapi.Get(itemurl, userchoiceinput)
+	xivapi.Getitem(itemurl, userchoiceinput)
 }
 func chooseItem() {
 	//After finding the results, and user chooses put the item ID into here.
@@ -53,36 +52,39 @@ func chooseItem() {
 	// Convert input into a url, then output the url string
 	itemurl := xivapi.UrlRecipe(userchoiceinput, useriteminput)
 	//We need to use the GET request on the url, and put JSON data into the database.
-	xivapi.Get(itemurl, userchoiceinput)
+	xivapi.Getitem(itemurl, userchoiceinput)
 }
 
 func main() {
-	//We need to get the URL
-	for {
-		var input int
-		fmt.Printf("Input Case 1,2,3:")
-		n, err := fmt.Scanln(&input)
-		// Force choose a positive number
-		if n < 1 || err != nil {
-			fmt.Println("invalid input")
-			os.Exit(2)
+	/*
+		//We need to get the URL
+		for {
+			var input int
+			fmt.Printf("Input Case 1,2,3:")
+			n, err := fmt.Scanln(&input)
+			// Force choose a positive number
+			if n < 1 || err != nil {
+				fmt.Println("invalid input")
+				os.Exit(2)
+			}
+			// If you need to re-search, use case 1.
+			// If you have the right itemID and Recipe, move onto case 2.
+			switch input {
+			case 1:
+				search()
+			case 2:
+				chooseRecipe()
+			case 3:
+				chooseItem()
+			case 4:
+				os.Exit(1)
+			//case 5:
+			//	database.MongoHandler()
+			default:
+				fmt.Println("Invalid Case Selected.")
+				continue
+			}
 		}
-		// If you need to re-search, use case 1.
-		// If you have the right itemID and Recipe, move onto case 2.
-		switch input {
-		case 1:
-			search()
-		case 2:
-			chooseRecipe()
-		case 3:
-			chooseItem()
-		case 4:
-			os.Exit(1)
-		case 5:
-			database.MongoHandler()
-		default:
-			fmt.Println("Invalid Case Selected.")
-			continue
-		}
-	}
+	*/
+	xivapi.Getitem(xivapi.UrlRecipe("recipe", "33180"), "recipe")
 }

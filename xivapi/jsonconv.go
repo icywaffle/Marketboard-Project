@@ -5,16 +5,18 @@ import (
 	"encoding/json"
 	"fmt" // Println etc.
 	"io/ioutil"
-	"strings"
+	"strconv"
 	"time"
 
 	// Converts jsonFile into a byteValue, which is our byte array.
-	"reflect"
 
 	// Opens files and store it into jsonFile, in our memory
 	"log"
 	"net/http"
+
 	// Converts ints to strings etc.
+
+	database "./database"
 )
 
 const SIZEOF_INT32 = 4 // bytes
@@ -26,9 +28,7 @@ type Recipe struct {
 	Name               string `json:"Name"`
 	ItemResultTargetID int    `json:"ItemResultTargetID"` // This is the Item ID
 	ID                 int    `json:"ID"`                 // This is the recipeID
-	CraftType          struct {
-		ID int `json:"ID"`
-	} `json:"CraftType"`
+	CraftTypeTargetID  int    `json:"CraftTypeTargetID"`
 }
 
 type AmountIngredient struct {
@@ -99,21 +99,9 @@ type Item struct {
 	Icon string `json:"Icon"`
 }
 
-// This function allows us to pass these awful structs into this function and obtain a clean slice.
-func Jsontoslice(anystruct interface{}, slicename []string) {
-	r_any := reflect.ValueOf(anystruct)
-	n_any := r_any.NumField()
-	slicename = slicename[:n_any] //Resize the slice to fit the number of fields.
-	for i := 0; i < n_any; i++ {
-		slicename[i] = fmt.Sprintf(`%v`, r_any.Field(i))
-	}
-	// Unfortunately, array elements are strings instead of ints.
-	// Don't know if it can put ints into the slice element instead.
-}
-
-func Get(itemjson string, userchoiceinput string) {
+func Getitem(itemjson string, userchoiceinput string) {
 	// MAX Rate limit is 20 Req/s -> 0.05s/Req, but safer to use 15req/s -> 0.06s/req
-	time.Sleep(60 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 	// This ensures that when this function is called, it does not exceed the rate limit.
 	// TODO: Use a channel to rate limit instead to allow multiple users to use this.
 
@@ -138,38 +126,87 @@ func Get(itemjson string, userchoiceinput string) {
 	if userchoiceinput == "recipe" {
 		var amount AmountIngredient
 		json.Unmarshal(byteValue, &amount)
-		amountslice := make([]string, 10) // Initializes a Slice
-		Jsontoslice(amount, amountslice)  // <- Accesses Slice Elements.
-		fmt.Println(amountslice)          // Prints out the slice.
+		// Passing the struct into the array instead to obtain a cleaner slice.
+		amountslice := []int{amount.AmountIngredient0,
+			amount.AmountIngredient1,
+			amount.AmountIngredient2,
+			amount.AmountIngredient3,
+			amount.AmountIngredient4,
+			amount.AmountIngredient5,
+			amount.AmountIngredient6,
+			amount.AmountIngredient7,
+			amount.AmountIngredient8,
+			amount.AmountIngredient9}
 
 		var matitemID ItemIngredient
 		json.Unmarshal(byteValue, &matitemID)
-		matitemIDslice := make([]string, 10)
-		Jsontoslice(matitemID, matitemIDslice)
-		fmt.Println(matitemIDslice)
+		matitemIDslice := []int{matitemID.ItemIngredient0TargetID,
+			matitemID.ItemIngredient1TargetID,
+			matitemID.ItemIngredient2TargetID,
+			matitemID.ItemIngredient3TargetID,
+			matitemID.ItemIngredient4TargetID,
+			matitemID.ItemIngredient5TargetID,
+			matitemID.ItemIngredient6TargetID,
+			matitemID.ItemIngredient7TargetID,
+			matitemID.ItemIngredient8TargetID,
+			matitemID.ItemIngredient9TargetID}
 
+		//  This slice is meant to search for every item recipe that we want.
 		var matrecipeID IngredientRecipe
 		json.Unmarshal(byteValue, &matrecipeID)
-		matrecipeIDslice := make([]string, 10)
-		Jsontoslice(matrecipeID, matrecipeIDslice)
+		matrecipeIDslice := make([][]int, 10)
 
-		// Check if it's ingredient is a base item.
-		// If the length of the element is > 2, it must have recipes inside of it.
-		// Else, it's a base ingredient and we don't need any more information.
-		// Ex: matrecipeIDslice = [[{31482} {31843}] [{31486}] [{31484}] [] [] [] [] [] [] []]
-		// Empty arrays have length of 2.
-		n := len(matrecipeIDslice)
-		for i := 0; i < n; i++ {
-			if len(matrecipeIDslice[i]) > 2 {
-				// An ingredient has a recipe, we pass the ID, back into the function and redo.
-				// Unfortunately these array elements are entirely string, and must be separated.
-				fmt.Println("MatID:", matitemIDslice[i], "Matforingredient#", i)
-				for j := 0; j < len(match(matrecipeIDslice[i])); j++ {
-					matrecipeurl := UrlRecipe("recipe", match(matrecipeIDslice[i])[j])
-					fmt.Println("MatRecipeID:", match(matrecipeIDslice[i])[j])
-					// We need to get an the recipe for every material(element) if they have one.
-					Get(matrecipeurl, "recipe")
-				}
+		//No choice but to unravel for each element, the possible Material Ingredient Recipe IDs 10 times.
+		// There is variable length for different elements.
+		for i := 0; i < len(matrecipeID.ItemIngredientRecipe0); i++ {
+			// Add to each element, the matrecipeIDs that are possible for one item
+			matrecipeIDslice[0] = append(matrecipeIDslice[0], matrecipeID.ItemIngredientRecipe0[i].ID)
+		}
+		for i := 0; i < len(matrecipeID.ItemIngredientRecipe1); i++ {
+			// Add to each element, the matrecipeIDs that are possible for one item
+			matrecipeIDslice[1] = append(matrecipeIDslice[1], matrecipeID.ItemIngredientRecipe1[i].ID)
+		}
+		for i := 0; i < len(matrecipeID.ItemIngredientRecipe2); i++ {
+			// Add to each element, the matrecipeIDs that are possible for one item
+			matrecipeIDslice[2] = append(matrecipeIDslice[2], matrecipeID.ItemIngredientRecipe2[i].ID)
+		}
+		for i := 0; i < len(matrecipeID.ItemIngredientRecipe3); i++ {
+			// Add to each element, the matrecipeIDs that are possible for one item
+			matrecipeIDslice[3] = append(matrecipeIDslice[3], matrecipeID.ItemIngredientRecipe3[i].ID)
+		}
+		for i := 0; i < len(matrecipeID.ItemIngredientRecipe4); i++ {
+			// Add to each element, the matrecipeIDs that are possible for one item
+			matrecipeIDslice[4] = append(matrecipeIDslice[4], matrecipeID.ItemIngredientRecipe4[i].ID)
+		}
+		for i := 0; i < len(matrecipeID.ItemIngredientRecipe5); i++ {
+			// Add to each element, the matrecipeIDs that are possible for one item
+			matrecipeIDslice[5] = append(matrecipeIDslice[5], matrecipeID.ItemIngredientRecipe5[i].ID)
+		}
+		for i := 0; i < len(matrecipeID.ItemIngredientRecipe6); i++ {
+			// Add to each element, the matrecipeIDs that are possible for one item
+			matrecipeIDslice[6] = append(matrecipeIDslice[6], matrecipeID.ItemIngredientRecipe6[i].ID)
+		}
+		for i := 0; i < len(matrecipeID.ItemIngredientRecipe7); i++ {
+			// Add to each element, the matrecipeIDs that are possible for one item
+			matrecipeIDslice[7] = append(matrecipeIDslice[7], matrecipeID.ItemIngredientRecipe7[i].ID)
+		}
+		for i := 0; i < len(matrecipeID.ItemIngredientRecipe8); i++ {
+			// Add to each element, the matrecipeIDs that are possible for one item
+			matrecipeIDslice[80] = append(matrecipeIDslice[8], matrecipeID.ItemIngredientRecipe8[i].ID)
+		}
+		for i := 0; i < len(matrecipeID.ItemIngredientRecipe9); i++ {
+			// Add to each element, the matrecipeIDs that are possible for one item
+			matrecipeIDslice[9] = append(matrecipeIDslice[9], matrecipeID.ItemIngredientRecipe9[i].ID)
+		}
+
+		//Pass all this information into the database
+		database.MongoHandler(recipeinfo.Name, recipeinfo.ID, recipeinfo.ItemResultTargetID, recipeinfo.CraftTypeTargetID, matitemIDslice, amountslice)
+
+		//Finally, we need to go through each recipe that is possible.
+		for i := 0; i < len(matrecipeIDslice); i++ {
+			// If we have elements inside, then j will iterate. Else it will not.
+			for j := 0; j < len(matrecipeIDslice[i]); j++ {
+				Getitem(UrlRecipe("recipe", strconv.Itoa(matrecipeIDslice[i][j])), "recipe")
 			}
 		}
 
@@ -180,28 +217,4 @@ func Get(itemjson string, userchoiceinput string) {
 		// We need to iterate over the elements of the array
 		fmt.Println(items.ID, items.Icon, items.Name)
 	} // TODO: Store these array information into a caching layer, which we can call instead of calling the server for the same pages over and over etc.
-}
-
-// Allows us to change the awkward array elements, which are outputted as an entire string, into a cleaner array with actual elements.
-func match(input string) []string {
-	n := 10 // Temporary declare in order to keep slices in range
-	tempslice := make([]string, n)
-	for i := 0; i < n; i++ {
-		starting := strings.Index(input, "{") // Will return the indext of the first instance.
-		ending := strings.Index(input[starting:], "}")
-
-		if starting >= 0 {
-			if ending >= 0 {
-				n = i + 2 // If we are iterating into here, it means we have more elements, then we need to change the for loop to add one more iteration.
-				result := input[starting+1 : ending+1]
-				tempslice[i] = result
-				if len(input) != 9 { // Length of input = 9 , means that there's only one ID!
-					input = input[ending+2:]
-				} else {
-					return tempslice[:n-1]
-				}
-			}
-		}
-	}
-	return tempslice[:n-1]
 }
