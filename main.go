@@ -56,35 +56,34 @@ func chooseItem() {
 }
 
 func main() {
-	/*
-		//We need to get the URL
-		for {
-			var input int
-			fmt.Printf("Input Case 1,2,3:")
-			n, err := fmt.Scanln(&input)
-			// Force choose a positive number
-			if n < 1 || err != nil {
-				fmt.Println("invalid input")
-				os.Exit(2)
-			}
-			// If you need to re-search, use case 1.
-			// If you have the right itemID and Recipe, move onto case 2.
-			switch input {
-			case 1:
-				search()
-			case 2:
-				chooseRecipe()
-			case 3:
-				chooseItem()
-			case 4:
-				os.Exit(1)
-			//case 5:
-			//	database.MongoHandler()
-			default:
-				fmt.Println("Invalid Case Selected.")
-				continue
-			}
+
+	//We need to get the URL
+	for {
+		var input int
+		fmt.Printf("Input Case 1,2,3:")
+		n, err := fmt.Scanln(&input)
+		// Force choose a positive number
+		if n < 1 || err != nil {
+			fmt.Println("invalid input")
+			os.Exit(2)
 		}
-	*/
-	xivapi.Getitem(xivapi.UrlRecipe("recipe", "33180"), "recipe")
+		// If you need to re-search, use case 1.
+		// If you have the right itemID and Recipe, move onto case 2.
+		switch input {
+		case 1:
+			search()
+		case 2:
+			chooseRecipe()
+		case 3:
+			chooseItem()
+		case 4:
+			os.Exit(1)
+		//case 5:
+		//	database.MongoHandler()
+		default:
+			fmt.Println("Invalid Case Selected.")
+			continue
+		}
+	}
+
 }
