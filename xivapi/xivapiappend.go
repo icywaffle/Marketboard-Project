@@ -10,21 +10,18 @@ import (
 
 // TODO: ?columns=Attributes,Object.Attribute will significantly lower payload
 
-//Once you have an item ID, it plugs it into the websiteurl.
-func UrlRecipe(userfield string, useruniqueID string) string {
-	//Example: https://xivapi.com/Recipe/33180?key=
+//Creates the URL for recipes and items
+func UrlItemRecipe(userfield string, userID string) string {
+	//Example: https://xivapi.com/Recipe/33180
+	//Example: https://xivapi.com/Item/24322
 	basewebsite := []byte("https://xivapi.com/")
 	field := []byte(userfield)
-	uniqueID := []byte(useruniqueID)
-	authkey := []byte(getKeys.XivAuthKey)
-
-	//The field isn't complete, we need to append the forward slash at the end.
+	uniqueID := []byte(userID)
 	completefield := append(field[:], '/')
-
-	//We need to combine the user input stuff
 	userinputurl := append(append(basewebsite[:], completefield[:]...), uniqueID[:]...)
 
-	//Now we need the complete URL
+	//Finishing the url with the AuthKey
+	authkey := []byte(getKeys.XivAuthKey)
 	websiteurl := append(append(userinputurl[:], '?'), authkey[:]...)
 
 	s := string(websiteurl)
@@ -33,14 +30,37 @@ func UrlRecipe(userfield string, useruniqueID string) string {
 
 //UserInputs some item to search. This appends it to the websiteurl.
 func UrlSearch(usersearch string) string {
-	//Example: https://xivapi.com/search?string=High+Mythrite+Ingot&key=
+	//Example: https://xivapi.com/search?string
+	basewebsite := []byte("https://xivapi.com/search?string=")
+
+	//Example: https://xivapi.com/search?string=High+Mythrite+Ingot
 	var replacer = strings.NewReplacer(" ", "+")
 	fixedusersearch := replacer.Replace(usersearch)
-
-	basewebsite := []byte("https://xivapi.com/search?string=")
-	authkey := []byte(getKeys.XivAuthKey)
 	searchfield := []byte(fixedusersearch)
 	userinputurl := append(append(basewebsite[:], searchfield[:]...), '&')
+
+	authkey := []byte(getKeys.XivAuthKey)
+	websiteurl := append(userinputurl[:], authkey[:]...)
+
+	s := string(websiteurl)
+	return s
+}
+
+func UrlPrices(useritemid string) string {
+	//Example: https://xivapi.com/market/item/3?servers=Phoenix,Lich,Moogle
+
+	//Produces : https://xivapi.com/market/item/3
+	itemwebsitefield := []byte("https://xivapi.com/market/item/")
+	itemid := []byte(useritemid)
+	basewebsite := append(itemwebsitefield[:], itemid[:]...)
+
+	//Produces :https://xivapi.com/market/item/3?servers=Phoenix,Lich,Moogle&
+	//TODO:Let's just use Sargatanas for now for simple structs, then expand later. ?servers=Adamantoise,Cactuar,Faerie,Gilgamesh,Jenova,Midgardsormr,Sargatanas,Siren
+	servers := []byte("?servers=Sargatanas")
+	userinputurl := append(append(basewebsite[:], servers[:]...), '&')
+
+	//Attaches key to the end.
+	authkey := []byte(getKeys.XivAuthKey)
 	websiteurl := append(userinputurl[:], authkey[:]...)
 
 	s := string(websiteurl)

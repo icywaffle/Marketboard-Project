@@ -119,7 +119,6 @@ func Getitem(itemjson string, userchoiceinput string) {
 	}
 	defer jsonFile.Body.Close()
 
-	// Then unmarshals the byteValues into the struct.
 	var recipeinfo Recipe
 	json.Unmarshal(byteValue, &recipeinfo)
 
@@ -192,7 +191,7 @@ func Getitem(itemjson string, userchoiceinput string) {
 		}
 		for i := 0; i < len(matrecipeID.ItemIngredientRecipe8); i++ {
 			// Add to each element, the matrecipeIDs that are possible for one item
-			matrecipeIDslice[80] = append(matrecipeIDslice[8], matrecipeID.ItemIngredientRecipe8[i].ID)
+			matrecipeIDslice[8] = append(matrecipeIDslice[8], matrecipeID.ItemIngredientRecipe8[i].ID)
 		}
 		for i := 0; i < len(matrecipeID.ItemIngredientRecipe9); i++ {
 			// Add to each element, the matrecipeIDs that are possible for one item
@@ -200,13 +199,12 @@ func Getitem(itemjson string, userchoiceinput string) {
 		}
 
 		//Pass all this information into the database
-		database.MongoHandler(recipeinfo.Name, recipeinfo.ID, recipeinfo.ItemResultTargetID, recipeinfo.CraftTypeTargetID, matitemIDslice, amountslice)
+		database.MongoInsert(recipeinfo.Name, recipeinfo.ID, recipeinfo.ItemResultTargetID, recipeinfo.CraftTypeTargetID, matitemIDslice, amountslice)
 
 		//Finally, we need to go through each recipe that is possible.
 		for i := 0; i < len(matrecipeIDslice); i++ {
-			// If we have elements inside, then j will iterate. Else it will not.
 			for j := 0; j < len(matrecipeIDslice[i]); j++ {
-				Getitem(UrlRecipe("recipe", strconv.Itoa(matrecipeIDslice[i][j])), "recipe")
+				Getitem(UrlItemRecipe("recipe", strconv.Itoa(matrecipeIDslice[i][j])), "recipe")
 			}
 		}
 
