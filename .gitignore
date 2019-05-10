@@ -1,2 +1,5 @@
 # Ignore the API authentication keys
 apikeys.go
+
+#Ignore VScode files
+.vscode/
