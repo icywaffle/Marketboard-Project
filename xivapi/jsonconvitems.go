@@ -13,10 +13,7 @@ import (
 	// Opens files and store it into jsonFile, in our memory
 	"log"
 	"net/http"
-
 	// Converts ints to strings etc.
-
-	database "./database"
 )
 
 const SIZEOF_INT32 = 4 // bytes
@@ -199,8 +196,8 @@ func Getitem(itemjson string, userchoiceinput string) {
 		}
 
 		//Pass all this information into the database
-		database.MongoInsert(recipeinfo.Name, recipeinfo.ID, recipeinfo.ItemResultTargetID, recipeinfo.CraftTypeTargetID, matitemIDslice, amountslice)
-
+		//database.MongoInsertRecipe(recipeinfo.Name, recipeinfo.ID, recipeinfo.ItemResultTargetID, recipeinfo.CraftTypeTargetID, matitemIDslice, amountslice)
+		fmt.Println(amountslice, matitemIDslice)
 		//Finally, we need to go through each recipe that is possible.
 		for i := 0; i < len(matrecipeIDslice); i++ {
 			for j := 0; j < len(matrecipeIDslice[i]); j++ {

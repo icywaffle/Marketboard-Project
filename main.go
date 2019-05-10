@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strconv"
 
+	database "./database"
 	xivapi "./xivapi"
-	database "./xivapi/database"
 )
 
 // Uses the Web Appending Function to create the url to request.
@@ -30,6 +30,15 @@ func choose(userchoiceinput string) {
 	xivapi.UrlItemRecipe(userchoiceinput, strconv.Itoa(userID))
 }
 
+func getprices() {
+	fmt.Printf("ID:")
+	var userID int
+	fmt.Scan(&userID)
+	websiteurl := xivapi.UrlPrices(strconv.Itoa(userID))
+	xivapi.GetItemPrices(websiteurl)
+
+}
+
 // Checks the database first before creating the url to request.
 func mongoHandler() {
 	//Ask user for the itemID, and check the database if it exists.
@@ -48,7 +57,7 @@ func main() {
 	for {
 		var input int
 		var userchoice string
-		fmt.Printf("Input Integer: Search(1), Find Recipe(2), Find Item(3), MongoDatabase(4)")
+		fmt.Printf("Input Integer: Search(1), Find Recipe(2), Find Item(3), MongoDatabase(4), getprices(5):")
 		fmt.Scanln(&input)
 
 		switch input {
@@ -62,10 +71,11 @@ func main() {
 			choose(userchoice)
 		case 4:
 			mongoHandler()
+		case 5:
+			getprices()
 		default:
 			fmt.Println("Invalid Case Selected.")
 			continue
 		}
 	}
-
 }

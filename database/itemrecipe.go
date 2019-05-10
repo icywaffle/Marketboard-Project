@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -20,8 +21,31 @@ type Recipes struct {
 	IngredientAmount []int
 }
 
+/////Price Struct//////
+type Prices struct {
+	Sargatanas struct {
+		ItemID  int `json:"ItemID"`
+		History []struct {
+			Added        int  `json:"Added"` // Time is in Unix epoch time
+			IsHQ         bool `json:"IsHQ"`
+			PricePerUnit int  `json:"PricePerUnit"`
+			PriceTotal   int  `json:"PriceTotal"`
+			PurchaseDate int  `json:"PurchaseDate"`
+			Quantity     int  `json:"Quantity"`
+		} `json:"History"`
+		Prices []struct {
+			Added        int  `json:"Added"`
+			IsHQ         bool `json:"IsHQ"`
+			PricePerUnit int  `json:"PricePerUnit"`
+			PriceTotal   int  `json:"PriceTotal"`
+			PurchaseDate int  `json:"PurchaseDate"`
+			Quantity     int  `json:"Quantity"`
+		} `json:"Prices"`
+	} `json:"Sargatanas"`
+}
+
 // Pass information from jsonconv to this to input these values into the database.
-func MongoInsert(itemname string, recipeid int, itemid int, crafttypeid int, ingredientid []int, ingredientamount []int) {
+func MongoInsertRecipe(itemname string, recipeid int, itemid int, crafttypeid int, ingredientid []int, ingredientamount []int) {
 	//Sets the Client Options
 	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017") //There are many client options available.
 	//Connect to the MongoDB
@@ -49,6 +73,38 @@ func MongoInsert(itemname string, recipeid int, itemid int, crafttypeid int, ing
 	// Insertresult.InsertedID shows the objectID that we inserted this with.
 	fmt.Println("Inserted Item into Database: ", insertResult.InsertedID)
 
+}
+
+func MongoInsertPrices(prices Prices) {
+	//Sets the Client Options
+	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017") //There are many client options available.
+	//Connect to the MongoDB
+	client, err := mongo.Connect(context.TODO(), clientOptions)
+	if err != nil {
+		log.Fatal(err)
+	}
+	//Check the connection
+	err = client.Ping(context.TODO(), nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	//This is the colleciton that we're accessing, from our database Marketboard, and from the collecion, Items.
+	collection := client.Database("Marketboard").Collection("Prices")
+
+	Itemexample := bson.D{
+		primitive.E{Key: "server", Value: prices.Sargatanas.ItemID},
+		primitive.E{Key: "history", Value: prices.Sargatanas.History},
+		primitive.E{Key: "prices", Value: prices.Sargatanas.Prices},
+	}
+
+	// This should insert the Itemexample into the document.
+	insertResult, err := collection.InsertOne(context.TODO(), Itemexample)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Insertresult.InsertedID shows the objectID that we inserted this with.
+	fmt.Println("Inserted Item into Database: ", insertResult.InsertedID)
 }
 
 func MongoFind(fieldname string, fieldvalue int) {
