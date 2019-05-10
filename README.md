@@ -45,9 +45,9 @@ Install MongoDB, and create a server that uses the default port 27017.
 
 Create an XIVAPI account and obtain your own private key.
 
-Create a folder inside xivapi called,
+Create a folder inside /xivapi/ called,
 
-`database`
+`keys`
 
 Then create a go file that contains
 
