@@ -22,10 +22,13 @@ Profits / Costs of Items you want to craft.
 Item Recipes shown along with the cost of those materials.
 
 ## Code Example
+
 `weburl := xivapi.UrlItemRecipe(userchoice, strconv.Itoa(userID)`
-What this code does is to give you the URL corresponding to your choice of item, or recipe id. This url is the xivapi url
+
+What this code does is to give you the URL corresponding to your choice of item, or recipe id. This is the xivapi url.
 
 `xivapi.Getitem(weburl), userchoice)`
+
 This is the example of the simplified backend code.
 What it does, is take the url from the xivapi, and then parse it into the database.
 However, there's no need to parse the information, if we already have it in the database. The backend code will handle this. (Later it will skip the weburl all together.)
@@ -37,13 +40,23 @@ Eventually it will also spit out the prices, or manipulate the prices through th
 
 ## Installation
 For current build,
-Createa folder inside xivapi called,
-    `database`
+
+Install MongoDB, and create a server that uses the default port 27017.
+
+Create an XIVAPI account and obtain your own private key.
+
+Create a folder inside xivapi called,
+
+`database`
+
 Then create a go file that contains
+
 `package keys`
+
 `var XivAuthKey string = "private_key=#######"`
 
 Finally, if you have installed Go, in the console, CD into the main folder directory,
+
 `C:\Marketboard-Project> go run main.go`
 
 ## API Reference
