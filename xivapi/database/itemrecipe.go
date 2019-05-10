@@ -41,6 +41,14 @@ type Prices struct {
 	} `json:"Sargatanas"`
 }
 
+////// Results Struct////
+type RecipeResults struct {
+	ItemName    string `bson:"itemname"`
+	ItemID      int    `bson:"itemid"`
+	RecipeID    int    `bson:"recipeid"`
+	CraftTypeID int    `bson:"crafttypeid"`
+}
+
 // Pass information from jsonconv to this to input these values into the database.
 func MongoInsertRecipe(recipes Recipes, ingredientid []int, ingredientamount []int) {
 	//Sets the Client Options
@@ -61,8 +69,8 @@ func MongoInsertRecipe(recipes Recipes, ingredientid []int, ingredientamount []i
 	//This is an example item that should be inserted into the existing document
 	Itemexample := bson.D{
 		primitive.E{Key: "itemname", Value: recipes.Name},
-		primitive.E{Key: "recipeid", Value: recipes.ItemResultTargetID},
-		primitive.E{Key: "itemid", Value: recipes.ID},
+		primitive.E{Key: "itemid", Value: recipes.ItemResultTargetID},
+		primitive.E{Key: "recipeid", Value: recipes.ID},
 		primitive.E{Key: "crafttypeid", Value: recipes.CraftTypeTargetID},
 		primitive.E{Key: "ingredientname", Value: ingredientid},
 		primitive.E{Key: "ingredientamount", Value: ingredientamount},
@@ -111,7 +119,7 @@ func MongoInsertPrices(prices Prices, userID int) {
 	fmt.Println("Inserted Item into Database: ", insertResult.InsertedID)
 }
 
-func MongoFind(fieldname string, fieldvalue int) {
+func MongoFind(fieldname string, fieldvalue int) bool {
 	//Sets the Client Options
 	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017") //There are many client options available.
 	//Connect to the MongoDB
@@ -132,22 +140,15 @@ func MongoFind(fieldname string, fieldvalue int) {
 	filter := bson.M{fieldname: fieldvalue}
 
 	// TODO: we can create this struct in a different file, and pass it through the function, so that we can manipulate this later.
-	var result Recipes
+	var result RecipeResults
 
 	//Actually find some with one filter
 	err = collection.FindOne(context.TODO(), filter).Decode(&result)
 	if err != nil {
-		log.Fatal(err)
+		// This is where we find nothing.
+		return false
 	}
 
-	fmt.Println(len(result.Name), result.Name)
-
-	// We need to call a function to handle all these variables.
-	//result.ItemName
-	//result.RecipeID
-	//result.ItemID
-	//result.CraftTypeID
-	//result.IngredientName[]
-	//result.IngredientAmount[]
+	return true
 
 }
