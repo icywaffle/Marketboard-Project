@@ -22,7 +22,6 @@ type Recipes struct {
 /////Price Struct//////
 type Prices struct {
 	Sargatanas struct {
-		ItemID  int `json:"ItemID"`
 		History []struct {
 			Added        int  `json:"Added"` // Time is in Unix epoch time
 			IsHQ         bool `json:"IsHQ"`
@@ -80,7 +79,7 @@ func MongoInsertRecipe(recipes Recipes, ingredientid []int, ingredientamount []i
 
 }
 
-func MongoInsertPrices(prices Prices) {
+func MongoInsertPrices(prices Prices, userID int) {
 	//Sets the Client Options
 	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017") //There are many client options available.
 	//Connect to the MongoDB
@@ -97,9 +96,9 @@ func MongoInsertPrices(prices Prices) {
 	collection := client.Database("Marketboard").Collection("Prices")
 
 	Itemexample := bson.D{
-		primitive.E{Key: "server", Value: prices.Sargatanas.ItemID},
-		primitive.E{Key: "history", Value: prices.Sargatanas.History},
-		primitive.E{Key: "prices", Value: prices.Sargatanas.Prices},
+		// For here, we need to write this code for each individual server.
+		primitive.E{Key: "itemid", Value: userID},
+		primitive.E{Key: "servers", Value: prices},
 	}
 
 	// This should insert the Itemexample into the document.
@@ -131,6 +130,8 @@ func MongoFind(fieldname string, fieldvalue int) {
 
 	//Filters using a map to find the result, finding documents with  "field" : key
 	filter := bson.M{fieldname: fieldvalue}
+
+	// TODO: we can create this struct in a different file, and pass it through the function, so that we can manipulate this later.
 	var result Recipes
 
 	//Actually find some with one filter
@@ -139,7 +140,7 @@ func MongoFind(fieldname string, fieldvalue int) {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Found a single document: %+v\n", result)
+	fmt.Println(len(result.Name), result.Name)
 
 	// We need to call a function to handle all these variables.
 	//result.ItemName

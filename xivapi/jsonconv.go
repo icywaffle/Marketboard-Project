@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	database "../database"
+	database "./database"
 )
 
 const SIZEOF_INT32 = 4 // bytes
@@ -87,6 +87,8 @@ type Item struct {
 }
 
 func Getitem(websiteurl string, userchoiceinput string) {
+
+	//If statement here. Use MongoFind.
 	// MAX Rate limit is 20 Req/s -> 0.05s/Req, but safer to use 15req/s -> 0.06s/req
 	time.Sleep(100 * time.Millisecond)
 	// This ensures that when this function is called, it does not exceed the rate limit.
@@ -108,7 +110,6 @@ func Getitem(websiteurl string, userchoiceinput string) {
 
 	var recipes database.Recipes
 	json.Unmarshal(byteValue, &recipes)
-	fmt.Println(recipes)
 
 	if userchoiceinput == "recipe" {
 		var amount AmountIngredient
@@ -195,7 +196,9 @@ func Getitem(websiteurl string, userchoiceinput string) {
 	} // TODO: Store these array information into a caching layer, which we can call instead of calling the server for the same pages over and over etc.
 }
 
-func GetItemPrices(websiteurl string) {
+func GetItemPrices(websiteurl string, userID int) {
+
+	//If statement here. Use MongoFind
 
 	// MAX Rate limit is 20 Req/s -> 0.05s/Req, but safer to use 15req/s -> 0.06s/req
 	time.Sleep(100 * time.Millisecond)
@@ -216,5 +219,5 @@ func GetItemPrices(websiteurl string) {
 	var prices database.Prices
 	json.Unmarshal(byteValue, &prices)
 
-	database.MongoInsertPrices(prices)
+	database.MongoInsertPrices(prices, userID)
 }

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strconv"
 
-	database "./database"
 	xivapi "./xivapi"
+	database "./xivapi/database"
 )
 
 // Uses the Web Appending Function to create the url to request.
@@ -22,57 +22,34 @@ func search() {
 	// Then use the xivapi to search for results
 	xivapi.SearchItem(urlxivapisearch)
 }
-func choose(userchoiceinput string) string {
-	//After finding the results, and user chooses put the item ID into here.
-	fmt.Printf("ID:")
-	var userID int
-	fmt.Scan(&userID)
-	fmt.Println(xivapi.UrlItemRecipe(userchoiceinput, strconv.Itoa(userID)))
-	return xivapi.UrlItemRecipe(userchoiceinput, strconv.Itoa(userID))
-}
-
-func getprices() string {
-	fmt.Printf("ID:")
-	var userID int
-	fmt.Scan(&userID)
-	return xivapi.UrlPrices(strconv.Itoa(userID))
-
-}
-
-// Checks the database first before creating the url to request.
-func mongoHandler() {
-	//Ask user for the itemID, and check the database if it exists.
-	fmt.Printf("ID:")
-	var userID int
-	fmt.Scan(&userID)
-	//If it exists, then this function should automatically use the information
-	//Else if it does not exist, then the MongoFind function should automatically call the WebUrl Requests.
-	// And mongoinsert into the database.
-	database.MongoFind("itemid", userID)
-
-}
 
 func main() {
 	// Allows user to select what they want to do.
 	for {
 		var input int
 		var userchoice string
-		fmt.Printf("Input Integer: Search(1), Find Recipe(2), Find Item(3), MongoDatabase(4), getprices(5):")
+		var userID int
+		fmt.Printf("Input Integer: Search(1), Find Recipe(2), Find Item(3), Get  Item Prices(4):")
 		fmt.Scanln(&input)
 
 		switch input {
 		case 1:
 			search()
 		case 2:
+			fmt.Printf("Recipe ID:")
+			fmt.Scan(&userID)
 			userchoice = "recipe"
-			xivapi.Getitem(choose(userchoice), userchoice)
+			//Gets the item recipe, and puts it into the database.
+			xivapi.Getitem(xivapi.UrlItemRecipe(userchoice, strconv.Itoa(userID)), userchoice)
 		case 3:
+			fmt.Printf("Item ID:")
+			fmt.Scan(&userID)
 			userchoice = "item"
-			choose(userchoice)
+			xivapi.Getitem(xivapi.UrlItemRecipe(userchoice, strconv.Itoa(userID)), userchoice)
 		case 4:
-			mongoHandler()
+			database.MongoFind("recipeid", 33180)
 		case 5:
-			xivapi.GetItemPrices(getprices())
+			xivapi.GetItemPrices(xivapi.UrlPrices(strconv.Itoa(14146)), 14146)
 		default:
 			fmt.Println("Invalid Case Selected.")
 			continue
