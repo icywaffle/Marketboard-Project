@@ -22,20 +22,20 @@ func search() {
 	// Then use the xivapi to search for results
 	xivapi.SearchItem(urlxivapisearch)
 }
-func choose(userchoiceinput string) {
+func choose(userchoiceinput string) string {
 	//After finding the results, and user chooses put the item ID into here.
 	fmt.Printf("ID:")
 	var userID int
 	fmt.Scan(&userID)
-	xivapi.UrlItemRecipe(userchoiceinput, strconv.Itoa(userID))
+	fmt.Println(xivapi.UrlItemRecipe(userchoiceinput, strconv.Itoa(userID)))
+	return xivapi.UrlItemRecipe(userchoiceinput, strconv.Itoa(userID))
 }
 
-func getprices() {
+func getprices() string {
 	fmt.Printf("ID:")
 	var userID int
 	fmt.Scan(&userID)
-	websiteurl := xivapi.UrlPrices(strconv.Itoa(userID))
-	xivapi.GetItemPrices(websiteurl)
+	return xivapi.UrlPrices(strconv.Itoa(userID))
 
 }
 
@@ -65,14 +65,14 @@ func main() {
 			search()
 		case 2:
 			userchoice = "recipe"
-			choose(userchoice)
+			xivapi.Getitem(choose(userchoice), userchoice)
 		case 3:
 			userchoice = "item"
 			choose(userchoice)
 		case 4:
 			mongoHandler()
 		case 5:
-			getprices()
+			xivapi.GetItemPrices(getprices())
 		default:
 			fmt.Println("Invalid Case Selected.")
 			continue

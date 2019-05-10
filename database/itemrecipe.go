@@ -11,14 +11,12 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// Structure of the basic Item Recipe Schema.
+////// Recipes Struct////
 type Recipes struct {
-	ItemName         string
-	RecipeID         int
-	ItemID           int
-	CraftTypeID      int
-	IngredientName   []int
-	IngredientAmount []int
+	Name               string `json:"Name"`
+	ItemResultTargetID int    `json:"ItemResultTargetID"` // This is the Item ID
+	ID                 int    `json:"ID"`                 // This is the recipeID
+	CraftTypeTargetID  int    `json:"CraftTypeTargetID"`
 }
 
 /////Price Struct//////
@@ -45,7 +43,7 @@ type Prices struct {
 }
 
 // Pass information from jsonconv to this to input these values into the database.
-func MongoInsertRecipe(itemname string, recipeid int, itemid int, crafttypeid int, ingredientid []int, ingredientamount []int) {
+func MongoInsertRecipe(recipes Recipes, ingredientid []int, ingredientamount []int) {
 	//Sets the Client Options
 	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017") //There are many client options available.
 	//Connect to the MongoDB
@@ -62,7 +60,14 @@ func MongoInsertRecipe(itemname string, recipeid int, itemid int, crafttypeid in
 	collection := client.Database("Marketboard").Collection("Recipes")
 
 	//This is an example item that should be inserted into the existing document
-	Itemexample := Recipes{itemname, recipeid, itemid, crafttypeid, ingredientid, ingredientamount}
+	Itemexample := bson.D{
+		primitive.E{Key: "itemname", Value: recipes.Name},
+		primitive.E{Key: "recipeid", Value: recipes.ItemResultTargetID},
+		primitive.E{Key: "itemid", Value: recipes.ID},
+		primitive.E{Key: "crafttypeid", Value: recipes.CraftTypeTargetID},
+		primitive.E{Key: "ingredientname", Value: ingredientid},
+		primitive.E{Key: "ingredientamount", Value: ingredientamount},
+	}
 
 	// This should insert the Itemexample into the document.
 	insertResult, err := collection.InsertOne(context.TODO(), Itemexample)

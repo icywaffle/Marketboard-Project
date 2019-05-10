@@ -1,19 +1,15 @@
 package xivapi
 
 import (
-	// Passes the byteValue to our struct.
 	"encoding/json"
-	"fmt" // Println etc.
+	"fmt"
 	"io/ioutil"
+	"log"
+	"net/http"
 	"strconv"
 	"time"
 
-	// Converts jsonFile into a byteValue, which is our byte array.
-
-	// Opens files and store it into jsonFile, in our memory
-	"log"
-	"net/http"
-	// Converts ints to strings etc.
+	database "../database"
 )
 
 const SIZEOF_INT32 = 4 // bytes
@@ -21,12 +17,6 @@ const SIZEOF_INT32 = 4 // bytes
 // Converts Recipe Pages of json, to arrays.
 
 /////////////////Recipe Struct Here//////////////////////////
-type Recipe struct {
-	Name               string `json:"Name"`
-	ItemResultTargetID int    `json:"ItemResultTargetID"` // This is the Item ID
-	ID                 int    `json:"ID"`                 // This is the recipeID
-	CraftTypeTargetID  int    `json:"CraftTypeTargetID"`
-}
 
 type AmountIngredient struct {
 	//The outer values
@@ -96,7 +86,7 @@ type Item struct {
 	Icon string `json:"Icon"`
 }
 
-func Getitem(itemjson string, userchoiceinput string) {
+func Getitem(websiteurl string, userchoiceinput string) {
 	// MAX Rate limit is 20 Req/s -> 0.05s/Req, but safer to use 15req/s -> 0.06s/req
 	time.Sleep(100 * time.Millisecond)
 	// This ensures that when this function is called, it does not exceed the rate limit.
@@ -105,7 +95,7 @@ func Getitem(itemjson string, userchoiceinput string) {
 	//What this does, is open the file, and read it
 	//TODO : At this point, we need an if statement to check if we have the data or not.
 	// If we do, then there's no need to http.Get
-	jsonFile, err := http.Get(itemjson)
+	jsonFile, err := http.Get(websiteurl)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -116,8 +106,9 @@ func Getitem(itemjson string, userchoiceinput string) {
 	}
 	defer jsonFile.Body.Close()
 
-	var recipeinfo Recipe
-	json.Unmarshal(byteValue, &recipeinfo)
+	var recipes database.Recipes
+	json.Unmarshal(byteValue, &recipes)
+	fmt.Println(recipes)
 
 	if userchoiceinput == "recipe" {
 		var amount AmountIngredient
@@ -147,7 +138,10 @@ func Getitem(itemjson string, userchoiceinput string) {
 			matitemID.ItemIngredient8TargetID,
 			matitemID.ItemIngredient9TargetID}
 
-		//  This slice is meant to search for every item recipe that we want.
+		//Pass all this information into the database
+		database.MongoInsertRecipe(recipes, matitemIDslice, amountslice)
+
+		// We need this information in order to go through every single possible recipe that can make this item.
 		var matrecipeID IngredientRecipe
 		json.Unmarshal(byteValue, &matrecipeID)
 		matrecipeIDslice := make([][]int, 10)
@@ -155,49 +149,36 @@ func Getitem(itemjson string, userchoiceinput string) {
 		//No choice but to unravel for each element, the possible Material Ingredient Recipe IDs 10 times.
 		// There is variable length for different elements.
 		for i := 0; i < len(matrecipeID.ItemIngredientRecipe0); i++ {
-			// Add to each element, the matrecipeIDs that are possible for one item
 			matrecipeIDslice[0] = append(matrecipeIDslice[0], matrecipeID.ItemIngredientRecipe0[i].ID)
 		}
 		for i := 0; i < len(matrecipeID.ItemIngredientRecipe1); i++ {
-			// Add to each element, the matrecipeIDs that are possible for one item
 			matrecipeIDslice[1] = append(matrecipeIDslice[1], matrecipeID.ItemIngredientRecipe1[i].ID)
 		}
 		for i := 0; i < len(matrecipeID.ItemIngredientRecipe2); i++ {
-			// Add to each element, the matrecipeIDs that are possible for one item
 			matrecipeIDslice[2] = append(matrecipeIDslice[2], matrecipeID.ItemIngredientRecipe2[i].ID)
 		}
 		for i := 0; i < len(matrecipeID.ItemIngredientRecipe3); i++ {
-			// Add to each element, the matrecipeIDs that are possible for one item
 			matrecipeIDslice[3] = append(matrecipeIDslice[3], matrecipeID.ItemIngredientRecipe3[i].ID)
 		}
 		for i := 0; i < len(matrecipeID.ItemIngredientRecipe4); i++ {
-			// Add to each element, the matrecipeIDs that are possible for one item
 			matrecipeIDslice[4] = append(matrecipeIDslice[4], matrecipeID.ItemIngredientRecipe4[i].ID)
 		}
 		for i := 0; i < len(matrecipeID.ItemIngredientRecipe5); i++ {
-			// Add to each element, the matrecipeIDs that are possible for one item
 			matrecipeIDslice[5] = append(matrecipeIDslice[5], matrecipeID.ItemIngredientRecipe5[i].ID)
 		}
 		for i := 0; i < len(matrecipeID.ItemIngredientRecipe6); i++ {
-			// Add to each element, the matrecipeIDs that are possible for one item
 			matrecipeIDslice[6] = append(matrecipeIDslice[6], matrecipeID.ItemIngredientRecipe6[i].ID)
 		}
 		for i := 0; i < len(matrecipeID.ItemIngredientRecipe7); i++ {
-			// Add to each element, the matrecipeIDs that are possible for one item
 			matrecipeIDslice[7] = append(matrecipeIDslice[7], matrecipeID.ItemIngredientRecipe7[i].ID)
 		}
 		for i := 0; i < len(matrecipeID.ItemIngredientRecipe8); i++ {
-			// Add to each element, the matrecipeIDs that are possible for one item
 			matrecipeIDslice[8] = append(matrecipeIDslice[8], matrecipeID.ItemIngredientRecipe8[i].ID)
 		}
 		for i := 0; i < len(matrecipeID.ItemIngredientRecipe9); i++ {
-			// Add to each element, the matrecipeIDs that are possible for one item
 			matrecipeIDslice[9] = append(matrecipeIDslice[9], matrecipeID.ItemIngredientRecipe9[i].ID)
 		}
 
-		//Pass all this information into the database
-		//database.MongoInsertRecipe(recipeinfo.Name, recipeinfo.ID, recipeinfo.ItemResultTargetID, recipeinfo.CraftTypeTargetID, matitemIDslice, amountslice)
-		fmt.Println(amountslice, matitemIDslice)
 		//Finally, we need to go through each recipe that is possible.
 		for i := 0; i < len(matrecipeIDslice); i++ {
 			for j := 0; j < len(matrecipeIDslice[i]); j++ {
@@ -212,4 +193,28 @@ func Getitem(itemjson string, userchoiceinput string) {
 		// We need to iterate over the elements of the array
 		fmt.Println(items.ID, items.Icon, items.Name)
 	} // TODO: Store these array information into a caching layer, which we can call instead of calling the server for the same pages over and over etc.
+}
+
+func GetItemPrices(websiteurl string) {
+
+	// MAX Rate limit is 20 Req/s -> 0.05s/Req, but safer to use 15req/s -> 0.06s/req
+	time.Sleep(100 * time.Millisecond)
+	// This ensures that when this function is called, it does not exceed the rate limit.
+	// TODO: Use a channel to rate limit instead to allow multiple users to use this.
+
+	//Get request to create the bytevalue to unload into the struct
+	jsonFile, err := http.Get(websiteurl)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	byteValue, err := ioutil.ReadAll(jsonFile.Body)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer jsonFile.Body.Close()
+
+	var prices database.Prices
+	json.Unmarshal(byteValue, &prices)
+
+	database.MongoInsertPrices(prices)
 }
