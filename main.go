@@ -8,21 +8,6 @@ import (
 	database "./xivapi/database"
 )
 
-// Uses the Web Appending Function to create the url to request.
-func search() {
-	// Prompt for Search Input
-	fmt.Printf("XIVAPI Search:")
-	fmt.Printf("ID:")
-	var usersearchinput string
-	fmt.Scan(&usersearchinput)
-
-	// Pass the input to the Web Appending Function
-	urlxivapisearch := xivapi.UrlSearch(usersearchinput)
-
-	// Then use the xivapi to search for results
-	xivapi.SearchItem(urlxivapisearch)
-}
-
 func main() {
 	// Allows user to select what they want to do.
 	for {
@@ -34,21 +19,19 @@ func main() {
 
 		switch input {
 		case 1:
-			search()
-		case 2:
 			fmt.Printf("Recipe ID:")
 			fmt.Scan(&userID)
 			userchoice = "recipe"
 			//Gets the item recipe, and puts it into the database.
 			xivapi.Getitem(xivapi.UrlItemRecipe(userchoice, strconv.Itoa(userID)), userchoice)
-		case 3:
+		case 2:
 			fmt.Printf("Item ID:")
 			fmt.Scan(&userID)
 			userchoice = "item"
 			xivapi.Getitem(xivapi.UrlItemRecipe(userchoice, strconv.Itoa(userID)), userchoice)
-		case 4:
+		case 3:
 			database.MongoFind("recipeid", 33180)
-		case 5:
+		case 4:
 			xivapi.GetItemPrices(xivapi.UrlPrices(strconv.Itoa(14146)), 14146)
 		default:
 			fmt.Println("Invalid Case Selected.")

@@ -11,11 +11,11 @@ import (
 // TODO: ?columns=Attributes,Object.Attribute will significantly lower payload
 
 //Creates the URL for recipes and items
-func UrlItemRecipe(userfield string, userID string) string {
+func UrlItemRecipe(userID string) string {
 	//Example: https://xivapi.com/Recipe/33180
 	//Example: https://xivapi.com/Item/24322
 	basewebsite := []byte("https://xivapi.com/")
-	field := []byte(userfield)
+	field := []byte("recipe")
 	uniqueID := []byte(userID)
 	completefield := append(field[:], '/')
 	userinputurl := append(append(basewebsite[:], completefield[:]...), uniqueID[:]...)
