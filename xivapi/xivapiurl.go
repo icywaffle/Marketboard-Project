@@ -13,9 +13,8 @@ import (
 //Creates the URL for recipes and items
 func UrlItemRecipe(userID string) string {
 	//Example: https://xivapi.com/Recipe/33180
-	//Example: https://xivapi.com/Item/24322
 	basewebsite := []byte("https://xivapi.com/")
-	field := []byte("recipe")
+	field := []byte("Recipe")
 	uniqueID := []byte(userID)
 	completefield := append(field[:], '/')
 	userinputurl := append(append(basewebsite[:], completefield[:]...), uniqueID[:]...)

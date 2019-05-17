@@ -119,7 +119,7 @@ func MongoInsertPrices(prices Prices, userID int) {
 	fmt.Println("Inserted Item into Database: ", insertResult.InsertedID)
 }
 
-func MongoFind(fieldname string, fieldvalue int) bool {
+func MongoFind(collectionname string, fieldname string, fieldvalue int) bool {
 	//Sets the Client Options
 	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017") //There are many client options available.
 	//Connect to the MongoDB
@@ -134,7 +134,7 @@ func MongoFind(fieldname string, fieldvalue int) bool {
 	}
 
 	//This is the colleciton that we're accessing, from our database Marketboard, and from the collecion, Items.
-	collection := client.Database("Marketboard").Collection("Recipes")
+	collection := client.Database("Marketboard").Collection(collectionname)
 
 	//Filters using a map to find the result, finding documents with  "field" : key
 	filter := bson.M{fieldname: fieldvalue}
