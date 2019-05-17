@@ -89,9 +89,6 @@ type Item struct {
 func Getitem(websiteurl string, userchoiceinput string) {
 
 	//If statement here. Use MongoFind.
-	// If we have it, we just put use profit.go
-	// If we dont have it, we just parse the information into Profit.go in a readable form.
-
 	// MAX Rate limit is 20 Req/s -> 0.05s/Req, but safer to use 15req/s -> 0.06s/req
 	time.Sleep(100 * time.Millisecond)
 	// This ensures that when this function is called, it does not exceed the rate limit.
@@ -145,8 +142,45 @@ func Getitem(websiteurl string, userchoiceinput string) {
 		//Pass all this information into the database
 		database.MongoInsertRecipe(recipes, matitemIDslice, amountslice)
 
+		// We need this information in order to go through every single possible recipe that can make this item.
+		var matrecipeID IngredientRecipe
+		json.Unmarshal(byteValue, &matrecipeID)
+		matrecipeIDslice := make([][]int, 10)
+
+		//No choice but to unravel for each element, the possible Material Ingredient Recipe IDs 10 times.
+		// There is variable length for different elements.
+		for i := 0; i < len(matrecipeID.ItemIngredientRecipe0); i++ {
+			matrecipeIDslice[0] = append(matrecipeIDslice[0], matrecipeID.ItemIngredientRecipe0[i].ID)
+		}
+		for i := 0; i < len(matrecipeID.ItemIngredientRecipe1); i++ {
+			matrecipeIDslice[1] = append(matrecipeIDslice[1], matrecipeID.ItemIngredientRecipe1[i].ID)
+		}
+		for i := 0; i < len(matrecipeID.ItemIngredientRecipe2); i++ {
+			matrecipeIDslice[2] = append(matrecipeIDslice[2], matrecipeID.ItemIngredientRecipe2[i].ID)
+		}
+		for i := 0; i < len(matrecipeID.ItemIngredientRecipe3); i++ {
+			matrecipeIDslice[3] = append(matrecipeIDslice[3], matrecipeID.ItemIngredientRecipe3[i].ID)
+		}
+		for i := 0; i < len(matrecipeID.ItemIngredientRecipe4); i++ {
+			matrecipeIDslice[4] = append(matrecipeIDslice[4], matrecipeID.ItemIngredientRecipe4[i].ID)
+		}
+		for i := 0; i < len(matrecipeID.ItemIngredientRecipe5); i++ {
+			matrecipeIDslice[5] = append(matrecipeIDslice[5], matrecipeID.ItemIngredientRecipe5[i].ID)
+		}
+		for i := 0; i < len(matrecipeID.ItemIngredientRecipe6); i++ {
+			matrecipeIDslice[6] = append(matrecipeIDslice[6], matrecipeID.ItemIngredientRecipe6[i].ID)
+		}
+		for i := 0; i < len(matrecipeID.ItemIngredientRecipe7); i++ {
+			matrecipeIDslice[7] = append(matrecipeIDslice[7], matrecipeID.ItemIngredientRecipe7[i].ID)
+		}
+		for i := 0; i < len(matrecipeID.ItemIngredientRecipe8); i++ {
+			matrecipeIDslice[8] = append(matrecipeIDslice[8], matrecipeID.ItemIngredientRecipe8[i].ID)
+		}
+		for i := 0; i < len(matrecipeID.ItemIngredientRecipe9); i++ {
+			matrecipeIDslice[9] = append(matrecipeIDslice[9], matrecipeID.ItemIngredientRecipe9[i].ID)
+		}
+
 		//Finally, we need to go through each recipe that is possible.
-		matrecipeIDslice := matrecipeslice(byteValue)
 		for i := 0; i < len(matrecipeIDslice); i++ {
 			for j := 0; j < len(matrecipeIDslice[i]); j++ {
 				Getitem(UrlItemRecipe("recipe", strconv.Itoa(matrecipeIDslice[i][j])), "recipe")
@@ -185,56 +219,5 @@ func GetItemPrices(websiteurl string, userID int) {
 	var prices database.Prices
 	json.Unmarshal(byteValue, &prices)
 
-	//database.MongoInsertPrices(prices, userID)
-
-	//Finally, we need to go through each recipe that is possible.
-	matrecipeIDslice := matrecipeslice(byteValue)
-	for i := 0; i < len(matrecipeIDslice); i++ {
-		for j := 0; j < len(matrecipeIDslice[i]); j++ {
-			GetItemPrices(UrlItemRecipe("recipe", strconv.Itoa(matrecipeIDslice[i][j])), matrecipeIDslice[i][j])
-		}
-	}
-}
-
-func matrecipeslice(byteValue []byte) [][]int {
-	fmt.Println(byteValue)
-	// We need this information in order to go through every single possible recipe that can make this item.
-	var matrecipeID IngredientRecipe
-	json.Unmarshal(byteValue, &matrecipeID)
-	matrecipeIDslice := make([][]int, 10)
-
-	//No choice but to unravel for each element, the possible Material Ingredient Recipe IDs 10 times.
-	// There is variable length for different elements.
-	for i := 0; i < len(matrecipeID.ItemIngredientRecipe0); i++ {
-		matrecipeIDslice[0] = append(matrecipeIDslice[0], matrecipeID.ItemIngredientRecipe0[i].ID)
-	}
-	for i := 0; i < len(matrecipeID.ItemIngredientRecipe1); i++ {
-		matrecipeIDslice[1] = append(matrecipeIDslice[1], matrecipeID.ItemIngredientRecipe1[i].ID)
-	}
-	for i := 0; i < len(matrecipeID.ItemIngredientRecipe2); i++ {
-		matrecipeIDslice[2] = append(matrecipeIDslice[2], matrecipeID.ItemIngredientRecipe2[i].ID)
-	}
-	for i := 0; i < len(matrecipeID.ItemIngredientRecipe3); i++ {
-		matrecipeIDslice[3] = append(matrecipeIDslice[3], matrecipeID.ItemIngredientRecipe3[i].ID)
-	}
-	for i := 0; i < len(matrecipeID.ItemIngredientRecipe4); i++ {
-		matrecipeIDslice[4] = append(matrecipeIDslice[4], matrecipeID.ItemIngredientRecipe4[i].ID)
-	}
-	for i := 0; i < len(matrecipeID.ItemIngredientRecipe5); i++ {
-		matrecipeIDslice[5] = append(matrecipeIDslice[5], matrecipeID.ItemIngredientRecipe5[i].ID)
-	}
-	for i := 0; i < len(matrecipeID.ItemIngredientRecipe6); i++ {
-		matrecipeIDslice[6] = append(matrecipeIDslice[6], matrecipeID.ItemIngredientRecipe6[i].ID)
-	}
-	for i := 0; i < len(matrecipeID.ItemIngredientRecipe7); i++ {
-		matrecipeIDslice[7] = append(matrecipeIDslice[7], matrecipeID.ItemIngredientRecipe7[i].ID)
-	}
-	for i := 0; i < len(matrecipeID.ItemIngredientRecipe8); i++ {
-		matrecipeIDslice[8] = append(matrecipeIDslice[8], matrecipeID.ItemIngredientRecipe8[i].ID)
-	}
-	for i := 0; i < len(matrecipeID.ItemIngredientRecipe9); i++ {
-		matrecipeIDslice[9] = append(matrecipeIDslice[9], matrecipeID.ItemIngredientRecipe9[i].ID)
-	}
-	fmt.Println(matrecipeID.ItemIngredientRecipe0)
-	return matrecipeIDslice
+	database.MongoInsertPrices(prices, userID)
 }
