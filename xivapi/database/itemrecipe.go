@@ -35,7 +35,6 @@ type Prices struct {
 			IsHQ         bool `json:"IsHQ"`
 			PricePerUnit int  `json:"PricePerUnit"`
 			PriceTotal   int  `json:"PriceTotal"`
-			PurchaseDate int  `json:"PurchaseDate"`
 			Quantity     int  `json:"Quantity"`
 		} `json:"Prices"`
 	} `json:"Sargatanas"`
@@ -43,10 +42,12 @@ type Prices struct {
 
 ////// Results Struct////
 type RecipeResults struct {
-	ItemName    string `bson:"itemname"`
-	ItemID      int    `bson:"itemid"`
-	RecipeID    int    `bson:"recipeid"`
-	CraftTypeID int    `bson:"crafttypeid"`
+	ItemName          string `bson:"itemname"`
+	ItemID            int    `bson:"itemid"`
+	RecipeID          int    `bson:"recipeid"`
+	CraftTypeID       int    `bson:"crafttypeid"`
+	IngredientNames   []int  `bson:"ingredientname"`
+	IngredientAmounts []int  `bson:"ingredientamount"`
 }
 
 // Pass information from jsonconv to this to input these values into the database.

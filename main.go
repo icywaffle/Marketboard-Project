@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	xivapi "./xivapi"
+	database "./xivapi/database"
 )
 
 func main() {
@@ -11,7 +12,7 @@ func main() {
 	for {
 		var input int
 		var userID int
-		fmt.Printf("Input Integer: Search(1), Find Recipe(2), Find Item(3), Get  Item Prices(4):")
+		fmt.Printf("Input Integer: ")
 		fmt.Scanln(&input)
 
 		switch input {
@@ -21,7 +22,9 @@ func main() {
 			//Gets the item recipe, and puts it into the database.
 			xivapi.Getitem(userID)
 		case 2:
-			xivapi.GetItemPrices(14146)
+			fmt.Printf("Item ID:")
+			fmt.Scan(&userID)
+			database.TotalProfits(userID)
 		default:
 			fmt.Println("Invalid Case Selected.")
 			continue
