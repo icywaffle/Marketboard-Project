@@ -19,8 +19,11 @@ func main() {
 		case 1:
 			fmt.Printf("Recipe ID:")
 			fmt.Scan(&userID)
-			//Gets the item recipe, and puts it into the database.
-			xivapi.Getitem(userID)
+			// If it is not in the database, access the API and put it into the database
+			if !database.MongoFind("Recipes", "recipeid", userID) {
+				xivapi.Getitem(userID)
+			}
+
 		case 2:
 			fmt.Printf("Item ID:")
 			fmt.Scan(&userID)

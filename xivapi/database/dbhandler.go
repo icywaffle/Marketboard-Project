@@ -11,36 +11,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-////// Recipes Struct////
-type Recipes struct {
-	Name               string `json:"Name"`
-	ItemResultTargetID int    `json:"ItemResultTargetID"` // This is the Item ID
-	ID                 int    `json:"ID"`                 // This is the recipeID
-	CraftTypeTargetID  int    `json:"CraftTypeTargetID"`
-}
-
-/////Price Struct//////
-type Prices struct {
-	Sargatanas struct {
-		History []struct {
-			Added        int  `json:"Added"` // Time is in Unix epoch time
-			IsHQ         bool `json:"IsHQ"`
-			PricePerUnit int  `json:"PricePerUnit"`
-			PriceTotal   int  `json:"PriceTotal"`
-			PurchaseDate int  `json:"PurchaseDate"`
-			Quantity     int  `json:"Quantity"`
-		} `json:"History"`
-		Prices []struct {
-			Added        int  `json:"Added"`
-			IsHQ         bool `json:"IsHQ"`
-			PricePerUnit int  `json:"PricePerUnit"`
-			PriceTotal   int  `json:"PriceTotal"`
-			Quantity     int  `json:"Quantity"`
-		} `json:"Prices"`
-	} `json:"Sargatanas"`
-}
-
-////// Results Struct////
 type RecipeResults struct {
 	ItemName          string `bson:"itemname"`
 	ItemID            int    `bson:"itemid"`

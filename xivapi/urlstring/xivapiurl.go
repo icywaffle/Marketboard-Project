@@ -1,9 +1,16 @@
-// Appends the strings to the xivapi.com/ <- Append things here
-
-package xivapi
+// UrlItemRecipe(userID string) returns a string of the Item Recipe Url.
+// UrlSearch(usersearch string) returns a string of the User Search Url
+// UrlPrices(useritemid int) 	returns a string of the Item Prices Url.
+// XiviapiRecipeConnector(recipeID int) connects to the API, and returns the byteValue of the url page.
+package urlstring
 
 import (
+	"io/ioutil"
+	"log"
+	"net/http"
+	"strconv"
 	"strings"
+	"time"
 
 	getKeys "./keys"
 )
@@ -11,11 +18,11 @@ import (
 // TODO: ?columns=Attributes,Object.Attribute will significantly lower payload
 
 //Creates the URL for recipes and items
-func UrlItemRecipe(userID string) string {
+func UrlItemRecipe(userID int) string {
 	//Example: https://xivapi.com/Recipe/33180
 	basewebsite := []byte("https://xivapi.com/")
 	field := []byte("Recipe")
-	uniqueID := []byte(userID)
+	uniqueID := []byte(strconv.Itoa(userID))
 	completefield := append(field[:], '/')
 	userinputurl := append(append(basewebsite[:], completefield[:]...), uniqueID[:]...)
 
@@ -45,12 +52,12 @@ func UrlSearch(usersearch string) string {
 	return s
 }
 
-func UrlPrices(useritemid string) string {
+func UrlPrices(useritemid int) string {
 	//Example: https://xivapi.com/market/item/3?servers=Phoenix,Lich,Moogle
 
 	//Produces : https://xivapi.com/market/item/3
 	itemwebsitefield := []byte("https://xivapi.com/market/item/")
-	itemid := []byte(useritemid)
+	itemid := []byte(strconv.Itoa(useritemid))
 	basewebsite := append(itemwebsitefield[:], itemid[:]...)
 
 	//Produces :https://xivapi.com/market/item/3?servers=Phoenix,Lich,Moogle&
@@ -64,4 +71,25 @@ func UrlPrices(useritemid string) string {
 
 	s := string(websiteurl)
 	return s
+}
+
+func XiviapiRecipeConnector(websiteurl string) []byte {
+	// MAX Rate limit is 20 Req/s -> 0.05s/Req, but safer to use 15req/s -> 0.06s/req
+	time.Sleep(100 * time.Millisecond)
+	// This ensures that when this function is called, it does not exceed the rate limit.
+	// TODO: Use a channel to rate limit instead to allow multiple users to use this.
+
+	//What this does, is open the file, and read it
+	jsonFile, err := http.Get(websiteurl)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	// Takes the jsonFile.Body, and put it into memory as byteValue array.
+	byteValue, err := ioutil.ReadAll(jsonFile.Body)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer jsonFile.Body.Close()
+
+	return byteValue
 }
