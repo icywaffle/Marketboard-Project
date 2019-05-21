@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
 	getKeys "./keys"
 )
@@ -74,10 +73,6 @@ func UrlPrices(useritemid int) string {
 }
 
 func XiviapiRecipeConnector(websiteurl string) []byte {
-	// MAX Rate limit is 20 Req/s -> 0.05s/Req, but safer to use 15req/s -> 0.06s/req
-	time.Sleep(100 * time.Millisecond)
-	// This ensures that when this function is called, it does not exceed the rate limit.
-	// TODO: Use a channel to rate limit instead to allow multiple users to use this.
 
 	//What this does, is open the file, and read it
 	jsonFile, err := http.Get(websiteurl)

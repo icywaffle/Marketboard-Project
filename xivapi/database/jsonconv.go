@@ -97,7 +97,7 @@ type IngredientRecipe struct {
 	} `json:"ItemIngredientRecipe9"`
 }
 
-func Getitem(byteValue []byte, recipeID int) [][]int {
+func GetmatIDs(byteValue []byte, recipeID int) [][]int {
 
 	// We need to go through every single possible recipe that can make this item.
 	var matrecipeID IngredientRecipe
