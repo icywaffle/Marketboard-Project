@@ -7,31 +7,35 @@ import (
 // Converts Recipe Pages of json, to arrays.
 ////// Recipes Struct////
 type Recipes struct {
-	Name               string `json:"Name"`
-	ItemResultTargetID int    `json:"ItemResultTargetID"` // This is the Item ID
-	ID                 int    `json:"ID"`                 // This is the recipeID
-	CraftTypeTargetID  int    `json:"CraftTypeTargetID"`
+	Name               string  `json:"Name" bson:"Name"`
+	ItemResultTargetID int     `json:"ItemResultTargetID" bson:"ItemID"` // This is the Item ID
+	ID                 int     `json:"ID" bson:"RecipeID"`               // This is the recipeID
+	CraftTypeTargetID  int     `json:"CraftTypeTargetID" bson:"CraftTypeTargetID"`
+	IngredientNames    []int   `bson:"IngredientName"`
+	IngredientAmounts  []int   `bson:"IngredientAmount"`
+	IngredientRecipes  [][]int `bson:"IngredientRecipes"`
 }
 
 /////Price Struct//////
 type Prices struct {
+	ItemID     int `bson:"ItemID"`
 	Sargatanas struct {
 		History []struct {
-			Added        int  `json:"Added"` // Time is in Unix epoch time
-			IsHQ         bool `json:"IsHQ"`
-			PricePerUnit int  `json:"PricePerUnit"`
-			PriceTotal   int  `json:"PriceTotal"`
-			PurchaseDate int  `json:"PurchaseDate"`
-			Quantity     int  `json:"Quantity"`
-		} `json:"History"`
+			Added        int  `json:"Added" bson:"Added"` // Time is in Unix epoch time
+			IsHQ         bool `json:"IsHQ" bson:"IsHQ"`
+			PricePerUnit int  `json:"PricePerUnit" bson:"PricePerUnit"`
+			PriceTotal   int  `json:"PriceTotal" bson:"PriceTotal"`
+			PurchaseDate int  `json:"PurchaseDate" bson:"PurchaseDate"`
+			Quantity     int  `json:"Quantity" bson:"Quantity"`
+		} `json:"History" bson:"History"`
 		Prices []struct {
-			Added        int  `json:"Added"`
-			IsHQ         bool `json:"IsHQ"`
-			PricePerUnit int  `json:"PricePerUnit"`
-			PriceTotal   int  `json:"PriceTotal"`
-			Quantity     int  `json:"Quantity"`
-		} `json:"Prices"`
-	} `json:"Sargatanas"`
+			Added        int  `json:"Added" bson:"Added"`
+			IsHQ         bool `json:"IsHQ" bson:"IsHQ"`
+			PricePerUnit int  `json:"PricePerUnit" bson:"PricePerUnit"`
+			PriceTotal   int  `json:"PriceTotal" bson:"PriceTotal"`
+			Quantity     int  `json:"Quantity" bson:"Quantity"`
+		} `json:"Prices" bson:"Prices"`
+	} `json:"Sargatanas" bson:"Sargatanas"`
 }
 
 /////////////////Recipe Struct Here//////////////////////////
@@ -97,7 +101,40 @@ type IngredientRecipe struct {
 	} `json:"ItemIngredientRecipe9"`
 }
 
-func GetmatIDs(byteValue []byte, recipeID int) [][]int {
+func Jsonitemrecipe(byteValue []byte) (*Recipes, []int, []int, [][]int) {
+
+	// Unmarshal the information into the structs
+	var recipes Recipes
+	json.Unmarshal(byteValue, &recipes)
+
+	var amount AmountIngredient
+	json.Unmarshal(byteValue, &amount)
+
+	var matitemID ItemIngredient
+	json.Unmarshal(byteValue, &matitemID)
+
+	// Create the slices
+	amountslice := []int{amount.AmountIngredient0,
+		amount.AmountIngredient1,
+		amount.AmountIngredient2,
+		amount.AmountIngredient3,
+		amount.AmountIngredient4,
+		amount.AmountIngredient5,
+		amount.AmountIngredient6,
+		amount.AmountIngredient7,
+		amount.AmountIngredient8,
+		amount.AmountIngredient9}
+
+	matitemIDslice := []int{matitemID.ItemIngredient0TargetID,
+		matitemID.ItemIngredient1TargetID,
+		matitemID.ItemIngredient2TargetID,
+		matitemID.ItemIngredient3TargetID,
+		matitemID.ItemIngredient4TargetID,
+		matitemID.ItemIngredient5TargetID,
+		matitemID.ItemIngredient6TargetID,
+		matitemID.ItemIngredient7TargetID,
+		matitemID.ItemIngredient8TargetID,
+		matitemID.ItemIngredient9TargetID}
 
 	// We need to go through every single possible recipe that can make this item.
 	var matrecipeID IngredientRecipe
@@ -137,5 +174,14 @@ func GetmatIDs(byteValue []byte, recipeID int) [][]int {
 		matrecipeIDslice[9] = append(matrecipeIDslice[9], matrecipeID.ItemIngredientRecipe9[i].ID)
 	}
 
-	return matrecipeIDslice
+	return &recipes, matitemIDslice, amountslice, matrecipeIDslice
+}
+
+func Jsonprices(byteValue []byte) *Prices {
+
+	var prices Prices
+	json.Unmarshal(byteValue, &prices)
+
+	return &prices
+
 }

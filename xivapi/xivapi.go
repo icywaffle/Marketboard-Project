@@ -2,7 +2,6 @@ package xivapi
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"time"
@@ -16,59 +15,84 @@ import (
 // Current issues.
 // We need to remove outliers from the price calculations.
 // We have to go into the recipes, and find those too.
-
 func NetItemPrice(recipeID int) {
-	// Connect to the database
+
+	// Connect to the database first.
 	itemcollection := dbconnect("Recipes")
 	pricecollection := dbconnect("Prices")
-	// itemresult is the info in the recipeID
-	itemresult := database.Ingredientmaterials(itemcollection, recipeID)
-	// If the item is not in the database, then we should add it. 0 is an invalid itemID
-	if itemresult.ItemID == 0 {
-		dbinsertitemrecipe(itemcollection, apirecipeconnect(recipeID), recipeID)
-		itemresult = database.Ingredientmaterials(itemcollection, recipeID)
+
+	// Using the recipeID, find the materials.
+	// Find the base item price.
+	basemats, baseprice := findinfo(itemcollection, pricecollection, recipeID)
+
+	// Using the materials, use the recipes that are already included.
+	// Using those recipes, find the materials.
+
+	tier := 0
+	pricepertier := make([]int, 0)
+	pricepertier = matinfo(itemcollection, pricecollection, basemats, tier, pricepertier)
+
+	// Find the base item prices
+	// Sum these material prices.
+	// Subtract from the first item price.
+	for i := 0; i < len(pricepertier); i++ {
+		_, currentbase := avgprices(basemats.ID, basemats.IngredientAmounts[i], baseprice)
+		fmt.Println("Profit", pricepertier[i]-currentbase, "Tier", i)
 	}
 
-	// We need to calculate the average price on these ingredients.
-	ingredients := itemresult.IngredientNames
-	ingredientamounts := itemresult.IngredientAmounts
-	var mathisprice int
-	var matcurrentprice int
-	for i := 0; i < len(ingredients); i++ {
-		if ingredients[i] != 0 {
-			// priceresult is the prices for the itemID
-			priceresult := database.Ingredientprices(pricecollection, ingredients[i])
-			// If the item is not in the database, then we should add it. 0 is an invalid itemID
-			if priceresult.ItemID == 0 {
-				dbinsertprice(pricecollection, apipriceconnect(ingredients[i]), ingredients[i])
-				priceresult = database.Ingredientprices(pricecollection, ingredients[i])
+}
+
+func matinfo(itemcollection *mongo.Collection, pricecollection *mongo.Collection, baseitem *database.Recipes, tier int, pricepertier []int) []int {
+
+	for i := 0; i < len(baseitem.IngredientRecipes); i++ {
+		for j := 0; j < len(baseitem.IngredientRecipes[i]); j++ {
+			// Zero is an invalid recipeID
+			if baseitem.IngredientRecipes[i][j] != 0 {
+				matofmats, matprice := findinfo(itemcollection, pricecollection, baseitem.IngredientRecipes[i][j])
+				// Append to the price per tier, the average price.
+				_, currentcost := avgprices(matofmats.ID, baseitem.IngredientAmounts[i], matprice)
+				pricepertier = append(pricepertier, currentcost)
+
+				// Find the other mat recipes.
+				// Mark these recipes as a tier and continue adding to that tier if they're later called inside the function.
+				tier += 1
+				matinfo(itemcollection, pricecollection, matofmats, tier, pricepertier)
+			} else {
+				continue
 			}
-			history, current := avgprices(ingredients[i], ingredientamounts[i], priceresult)
-			mathisprice += history
-			matcurrentprice += current
-			fmt.Printf("Price: %v , of : %v \n", matcurrentprice, ingredients[i])
-		} else {
-			continue
+
 		}
 
 	}
 
+	return pricepertier
+}
+
+func findinfo(itemcollection *mongo.Collection, pricecollection *mongo.Collection, recipeID int) (*database.Recipes, *database.Prices) {
+	// itemresult is the info in the recipeID
+	itemresult := database.Ingredientmaterials(itemcollection, recipeID)
+	// If the item is not in the database, then we should add it. 0 is an invalid itemID
+	if itemresult.ID == 0 {
+		byteValue := apirecipeconnect(recipeID)
+		// TODO : create a json struct that has all these variables.
+		recipes, matIDs, amounts, matrecipes := database.Jsonitemrecipe(byteValue)
+		database.InsertRecipe(itemcollection, *recipes, matIDs, amounts, matrecipes)
+
+		itemresult = database.Ingredientmaterials(itemcollection, recipeID)
+	}
 	// The find the price of the ingredient itself.
-	priceresult := database.Ingredientprices(pricecollection, itemresult.ItemID)
+	priceresult := database.Ingredientprices(pricecollection, itemresult.ID)
 	// TODO : Fix this into the Ingredientprices function instead.
 	if priceresult.ItemID == 0 {
-		dbinsertprice(pricecollection, apipriceconnect(itemresult.ItemID), itemresult.ItemID)
-		priceresult = database.Ingredientprices(pricecollection, itemresult.ItemID)
+		byteValue := apipriceconnect(itemresult.ItemResultTargetID)
+		// TODO : create a json struct that has all these variables.
+		prices := database.Jsonprices(byteValue)
+		database.InsertPrices(pricecollection, *prices, itemresult.ItemResultTargetID)
+
+		priceresult = database.Ingredientprices(pricecollection, itemresult.ItemResultTargetID)
 	}
-	mainhisprice, maincurrentprice := avgprices(itemresult.ItemID, 1, priceresult) //There's only 1 ingredient amount, which is the main item.
 
-	fmt.Printf("History of Main Item: %v \n", mainhisprice)
-	fmt.Printf("Current of Main Item: %v \n", maincurrentprice)
-	fmt.Printf("History of Total Materials: %v \n", mathisprice)
-	fmt.Printf("Current of Total Materials: %v \n", matcurrentprice)
-
-	fmt.Printf("Profits from buying Materials: %v \n", mainhisprice-matcurrentprice)
-
+	return itemresult, priceresult
 }
 
 func apirecipeconnect(recipeID int) []byte {
@@ -111,75 +135,24 @@ func dbconnect(collectionname string) *mongo.Collection {
 	return collection
 }
 
-func dbinsertitemrecipe(collection *mongo.Collection, byteValue []byte, recipeID int) {
-
-	// Unmarshal the information into the structs
-	var recipes database.Recipes
-	json.Unmarshal(byteValue, &recipes)
-
-	var amount database.AmountIngredient
-	json.Unmarshal(byteValue, &amount)
-
-	var matitemID database.ItemIngredient
-	json.Unmarshal(byteValue, &matitemID)
-
-	// Create the slices
-	amountslice := []int{amount.AmountIngredient0,
-		amount.AmountIngredient1,
-		amount.AmountIngredient2,
-		amount.AmountIngredient3,
-		amount.AmountIngredient4,
-		amount.AmountIngredient5,
-		amount.AmountIngredient6,
-		amount.AmountIngredient7,
-		amount.AmountIngredient8,
-		amount.AmountIngredient9}
-
-	matitemIDslice := []int{matitemID.ItemIngredient0TargetID,
-		matitemID.ItemIngredient1TargetID,
-		matitemID.ItemIngredient2TargetID,
-		matitemID.ItemIngredient3TargetID,
-		matitemID.ItemIngredient4TargetID,
-		matitemID.ItemIngredient5TargetID,
-		matitemID.ItemIngredient6TargetID,
-		matitemID.ItemIngredient7TargetID,
-		matitemID.ItemIngredient8TargetID,
-		matitemID.ItemIngredient9TargetID}
-
-	database.InsertRecipe(collection, recipes, matitemIDslice, amountslice)
-}
-
-func dbinsertprice(collection *mongo.Collection, byteValue []byte, itemID int) {
-
-	var prices database.Prices
-	json.Unmarshal(byteValue, &prices)
-
-	database.InsertPrices(collection, prices, itemID)
-
-}
-
-func avgprices(ingredient int, ingredientamount int, matprices *database.PriceResults) (int, int) {
+func avgprices(ingredient int, ingredientamount int, matprices *database.Prices) (int, int) {
 
 	// Average Price History for the latest 20 entries.
 	var hissum int
-	var hisN int
-	for i := 0; i < len(matprices.Servers.Sargatanas.History) && i < 20; i++ {
-		hissum = hissum + matprices.Servers.Sargatanas.History[i].PriceTotal
-		hisN = hisN + matprices.Servers.Sargatanas.History[i].Quantity
+	for i := 0; i < len(matprices.Sargatanas.History) && i < 2; i++ {
+		hissum = hissum + matprices.Sargatanas.History[i].PricePerUnit
 	}
 
-	soldaverage := hissum / hisN
+	soldaverage := hissum
 
 	// Average Price Listings for the latest 20 entries.
 
 	var listsum int
-	var listN int
-	for i := 0; i < len(matprices.Servers.Sargatanas.Prices) && i < 20; i++ {
-		listsum = listsum + matprices.Servers.Sargatanas.Prices[i].PriceTotal
-		listN = listN + matprices.Servers.Sargatanas.Prices[i].Quantity
+	for i := 0; i < len(matprices.Sargatanas.Prices) && i < 2; i++ {
+		listsum = listsum + matprices.Sargatanas.Prices[i].PricePerUnit
 	}
 
-	currentaverage := listsum / listN
+	currentaverage := listsum
 
 	// Multiply by the ingredient amount.
 	averagesoldcost := soldaverage * ingredientamount

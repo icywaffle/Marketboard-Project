@@ -10,67 +10,36 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type RecipeResults struct {
-	ItemName          string `bson:"itemname"`
-	ItemID            int    `bson:"itemid"`
-	RecipeID          int    `bson:"recipeid"`
-	CraftTypeID       int    `bson:"crafttypeid"`
-	IngredientNames   []int  `bson:"ingredientname"`
-	IngredientAmounts []int  `bson:"ingredientamount"`
-}
-
-type PriceResults struct {
-	ItemID  int `bson:"itemid"`
-	Servers struct {
-		Sargatanas struct {
-			History []struct {
-				Added        int  `bson:"added"` // Time is in Unix epoch time
-				IsHQ         bool `bson:"ishq"`
-				PricePerUnit int  `bson:"priceperunit"`
-				PriceTotal   int  `bson:"pricetotal"`
-				PurchaseDate int  `bson:"purchasedate"`
-				Quantity     int  `bson:"quantity"`
-			} `bson:"history"`
-			Prices []struct {
-				Added        int  `bson:"added"`
-				IsHQ         bool `bson:"ishq"`
-				PricePerUnit int  `bson:"priceperunit"`
-				PriceTotal   int  `bson:"pricetotal"`
-				Quantity     int  `bson:"quantity"`
-			} `bson:"prices"`
-		} `bson:"sargatanas"`
-	} `bson:"servers"`
-}
-
 // Calls ingredient amounts and item IDs, and returns the results
-func Ingredientmaterials(collection *mongo.Collection, recipeID int) *RecipeResults {
-	filter := bson.M{"recipeid": recipeID}
-	var result RecipeResults
+func Ingredientmaterials(collection *mongo.Collection, recipeID int) *Recipes {
+	filter := bson.M{"RecipeID": recipeID}
+	var result Recipes
 	collection.FindOne(context.TODO(), filter).Decode(&result)
 
 	return &result
 }
 
 // Call the prices from the database, and return the sold average and the current average
-func Ingredientprices(collection *mongo.Collection, itemID int) *PriceResults {
-	filter := bson.M{"itemid": itemID}
-	var result PriceResults
+func Ingredientprices(collection *mongo.Collection, itemID int) *Prices {
+	filter := bson.M{"ItemID": itemID}
+	var result Prices
 	collection.FindOne(context.TODO(), filter).Decode(&result)
 
 	return &result
 }
 
 // Pass information from jsonconv to this to input these values into the database.
-func InsertRecipe(collection *mongo.Collection, recipes Recipes, ingredientid []int, ingredientamount []int) {
+func InsertRecipe(collection *mongo.Collection, recipes Recipes, ingredientid []int, ingredientamount []int, ingredientrecipes [][]int) {
 
 	//This is an example item that should be inserted into the existing document
 	Itemexample := bson.D{
-		primitive.E{Key: "itemname", Value: recipes.Name},
-		primitive.E{Key: "itemid", Value: recipes.ItemResultTargetID},
-		primitive.E{Key: "recipeid", Value: recipes.ID},
-		primitive.E{Key: "crafttypeid", Value: recipes.CraftTypeTargetID},
-		primitive.E{Key: "ingredientname", Value: ingredientid},
-		primitive.E{Key: "ingredientamount", Value: ingredientamount},
+		primitive.E{Key: "Name", Value: recipes.Name},
+		primitive.E{Key: "ItemID", Value: recipes.ItemResultTargetID},
+		primitive.E{Key: "RecipeID", Value: recipes.ID},
+		primitive.E{Key: "CraftTypeTargetID", Value: recipes.CraftTypeTargetID},
+		primitive.E{Key: "IngredientName", Value: ingredientid},
+		primitive.E{Key: "IngredientAmount", Value: ingredientamount},
+		primitive.E{Key: "IngredientRecipes", Value: ingredientrecipes},
 	}
 
 	// This should insert the Itemexample into the document.
@@ -84,11 +53,11 @@ func InsertRecipe(collection *mongo.Collection, recipes Recipes, ingredientid []
 
 }
 
-func InsertPrices(collection *mongo.Collection, prices Prices, userID int) {
+func InsertPrices(collection *mongo.Collection, prices Prices, itemID int) {
 	Itemexample := bson.D{
 		// For here, we need to write this code for each individual server.
-		primitive.E{Key: "itemid", Value: userID},
-		primitive.E{Key: "servers", Value: prices},
+		primitive.E{Key: "ItemID", Value: itemID},
+		primitive.E{Key: "Sargatanas", Value: prices.Sargatanas},
 	}
 
 	// This should insert the Itemexample into the document.
