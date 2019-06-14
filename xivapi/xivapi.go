@@ -86,7 +86,6 @@ func findpricesarray(itemcollection *mongo.Collection, pricecollection *mongo.Co
 		// Zero is an invalid material ID
 		if baseinfo.IngredientNames[i] != 0 {
 			prices := findprices(pricecollection, baseinfo.IngredientNames[i])
-
 			pricearray[i] = prices.Sargatanas.Prices[0].PricePerUnit * baseinfo.IngredientAmounts[i]
 		} else {
 			continue
