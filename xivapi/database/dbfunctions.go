@@ -12,20 +12,20 @@ import (
 
 // Calls ingredient amounts and item IDs, and returns the results
 func Ingredientmaterials(collection *mongo.Collection, recipeID int) *Recipes {
-	recipefilter := bson.M{"RecipeID": recipeID}
-	var reciperesult Recipes
-	collection.FindOne(context.TODO(), recipefilter).Decode(&reciperesult)
+	filter := bson.M{"RecipeID": recipeID}
+	var result Recipes
+	collection.FindOne(context.TODO(), filter).Decode(&result)
 
-	return &reciperesult
+	return &result
 }
 
-// Looks through the database, and finds if there's an itemID in the prices.
+// Call the prices from the database, and return the sold average and the current average
 func Ingredientprices(collection *mongo.Collection, itemID int) *Prices {
-	pricefilter := bson.M{"ItemID": itemID}
-	var priceresult Prices
-	collection.FindOne(context.TODO(), pricefilter).Decode(&priceresult)
+	filter := bson.M{"ItemID": itemID}
+	var result Prices
+	collection.FindOne(context.TODO(), filter).Decode(&result)
 
-	return &priceresult
+	return &result
 }
 
 // Pass information from jsonconv to this to input these values into the database.
