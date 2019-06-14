@@ -54,18 +54,37 @@ func InsertRecipe(collection *mongo.Collection, recipes Recipes, ingredientid []
 }
 
 func InsertPrices(collection *mongo.Collection, prices Prices, itemID int) {
-	Itemexample := bson.D{
-		// For here, we need to write this code for each individual server.
-		primitive.E{Key: "ItemID", Value: itemID},
-		primitive.E{Key: "Sargatanas", Value: prices.Sargatanas},
+	if prices.VendorPrice != 0 {
+		Itemexample := bson.D{
+			primitive.E{Key: "ItemID", Value: itemID},
+			{Key: "Sargatanas", Value: bson.D{
+				{Key: "Prices", Value: bson.A{bson.D{{Key: "PricePerUnit", Value: prices.VendorPrice}}}},
+			}},
+		}
+		// This should insert the Itemexample into the document.
+		insertResult, err := collection.InsertOne(context.TODO(), Itemexample)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// Insertresult.InsertedID shows the objectID that we inserted this with.
+		fmt.Println("Inserted Item into Database: ", insertResult.InsertedID)
+	} else {
+
+		Itemexample := bson.D{
+			// For here, we need to write this code for each individual server.
+			primitive.E{Key: "ItemID", Value: itemID},
+			primitive.E{Key: "Sargatanas", Value: prices.Sargatanas},
+		}
+		// This should insert the Itemexample into the document.
+		insertResult, err := collection.InsertOne(context.TODO(), Itemexample)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// Insertresult.InsertedID shows the objectID that we inserted this with.
+		fmt.Println("Inserted Item into Database: ", insertResult.InsertedID)
+
 	}
 
-	// This should insert the Itemexample into the document.
-	insertResult, err := collection.InsertOne(context.TODO(), Itemexample)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Insertresult.InsertedID shows the objectID that we inserted this with.
-	fmt.Println("Inserted Item into Database: ", insertResult.InsertedID)
 }

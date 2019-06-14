@@ -86,7 +86,9 @@ func findpricesarray(itemcollection *mongo.Collection, pricecollection *mongo.Co
 		// Zero is an invalid material ID
 		if baseinfo.IngredientNames[i] != 0 {
 			prices := findprices(pricecollection, baseinfo.IngredientNames[i])
-
+			// The issue is for Camphorwood Branch or buyable things
+			// It's in a different layout because NPC bought things are not available in the market.
+			// In these cases, if null, then we go to the item, and look for PriceMid.
 			pricearray[i] = prices.Sargatanas.Prices[0].PricePerUnit * baseinfo.IngredientAmounts[i]
 		} else {
 			continue
@@ -127,8 +129,14 @@ func findprices(pricecollection *mongo.Collection, itemID int) *database.Prices 
 	// TODO : Fix this into the Ingredientprices function instead.
 	if priceresult.ItemID == 0 {
 		byteValue := apipriceconnect(itemID)
-		// TODO : create a json struct that has all these variables.
+		// Connects to the API and takes the market listed price
 		prices := database.Jsonprices(byteValue)
+		// If there is no market listed price, then it must mean that there's a vendor selling it.
+		if len(prices.Sargatanas.History) == 0 && len(prices.Sargatanas.Prices) == 0 {
+			// This information comes from the item page. Let's unmarshal the vendor price into the price struct.
+			byteValue = apiitemconnect(itemID)
+			prices = database.Jsonprices(byteValue)
+		}
 		database.InsertPrices(pricecollection, *prices, itemID)
 
 		priceresult = database.Ingredientprices(pricecollection, itemID)
@@ -155,6 +163,17 @@ func apipriceconnect(itemID int) []byte {
 	// TODO: Use a channel to rate limit instead to allow multiple users to use this.
 
 	websiteurl := urlstring.UrlPrices(itemID)
+	byteValue := urlstring.XiviapiRecipeConnector(websiteurl)
+	return byteValue
+}
+
+func apiitemconnect(itemID int) []byte {
+	// MAX Rate limit is 20 Req/s -> 0.05s/Req, but safer to use 15req/s -> 0.06s/req
+	time.Sleep(100 * time.Millisecond)
+	// This ensures that when this function is called, it does not exceed the rate limit.
+	// TODO: Use a channel to rate limit instead to allow multiple users to use this.
+
+	websiteurl := urlstring.UrlItem(itemID)
 	byteValue := urlstring.XiviapiRecipeConnector(websiteurl)
 	return byteValue
 }

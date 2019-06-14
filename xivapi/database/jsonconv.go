@@ -5,7 +5,7 @@ import (
 )
 
 // Converts Recipe Pages of json, to arrays.
-////// Recipes Struct////
+
 type Recipes struct {
 	Name               string  `json:"Name" bson:"Name"`
 	ItemResultTargetID int     `json:"ItemResultTargetID" bson:"ItemID"` // This is the Item ID
@@ -16,7 +16,6 @@ type Recipes struct {
 	IngredientRecipes  [][]int `bson:"IngredientRecipes"`
 }
 
-/////Price Struct//////
 type Prices struct {
 	ItemID     int `bson:"ItemID"`
 	Sargatanas struct {
@@ -36,6 +35,7 @@ type Prices struct {
 			Quantity     int  `json:"Quantity" bson:"Quantity"`
 		} `json:"Prices" bson:"Prices"`
 	} `json:"Sargatanas" bson:"Sargatanas"`
+	VendorPrice int `json:"PriceMid"`
 }
 
 /////////////////Recipe Struct Here//////////////////////////
@@ -67,7 +67,6 @@ type ItemIngredient struct {
 	ItemIngredient9TargetID int `json:"ItemIngredient9TargetID"`
 }
 
-// Ingredient Recipes
 type IngredientRecipe struct {
 	ItemIngredientRecipe0 []struct {
 		ID int `json:"ID"`

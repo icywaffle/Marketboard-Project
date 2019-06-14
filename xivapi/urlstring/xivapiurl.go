@@ -33,6 +33,22 @@ func UrlItemRecipe(userID int) string {
 	return s
 }
 
+func UrlItem(userID int) string {
+	//Example: https://xivapi.com/Item/14160
+	basewebsite := []byte("https://xivapi.com/")
+	field := []byte("Item")
+	uniqueID := []byte(strconv.Itoa(userID))
+	completefield := append(field[:], '/')
+	userinputurl := append(append(basewebsite[:], completefield[:]...), uniqueID[:]...)
+
+	//Finishing the url with the AuthKey
+	authkey := []byte(getKeys.XivAuthKey)
+	websiteurl := append(append(userinputurl[:], '?'), authkey[:]...)
+
+	s := string(websiteurl)
+	return s
+}
+
 //UserInputs some item to search. This appends it to the websiteurl.
 func UrlSearch(usersearch string) string {
 	//Example: https://xivapi.com/search?string

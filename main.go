@@ -6,6 +6,6 @@ import (
 
 func main() {
 
-	xivapi.NetItemPrice(33180)
+	xivapi.NetItemPrice(3799)
 
 }
