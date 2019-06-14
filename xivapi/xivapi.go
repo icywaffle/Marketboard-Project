@@ -17,36 +17,77 @@ import (
 // We have to go into the recipes, and find those too.
 func NetItemPrice(recipeID int) {
 
-	// Connect to the database first.
+	// Hold all the database info in terms of collections, so that you can manipulate it.
 	itemcollection := dbconnect("Recipes")
 	pricecollection := dbconnect("Prices")
 
-	// Using the recipeID, find the materials.
-	// Find the base item price.
+	// Uses the Recipe and Prices struct to hold all the information from the database.
 	baseinfo := finditem(itemcollection, recipeID)
 	baseprice := findprices(pricecollection, baseinfo.ItemResultTargetID)
 
-	materialprices := make(map[int][10]int)
+	//These two should be sent to the front end.
+	materialprices := make(map[int][10]int) // Already multiplied by the ingredient amounts.
 	materialingredients := make(map[int][]int)
+	// This can be calculated using the two above.
+	materialtotal := make(map[int]int)
+	/*
+		materialprices shows prices for it's total materials ->	  map[14146:[1158 3057 1000 0 0 0 0 0 1050 500]]
+		materialingredients shows the ingredients to make it ->   map[14146:[14147 14148 12534 0 0 0 0 0 14 17]
+		materialtotal shows the total price as a sum ->			  map[14146:6765]
+	*/
 
-	pricesarray(itemcollection, pricecollection, baseinfo, materialprices, materialingredients)
+	// Fills the maps
+	findpricesarray(itemcollection, pricecollection, baseinfo, materialprices, materialingredients)
 
-	// Find the base item prices
-	// Sum these material prices.
-	// Subtract from the first item price.
+	// All these calculations below can be done in the front end javascript. This is here in the backend for reference.
+	for itemID, pricearray := range materialprices {
+		var pricesum int
+		for i := 0; i < len(pricearray); i++ {
+			pricesum += pricearray[i]
+		}
+		materialtotal[itemID] = pricesum
+	}
 	_, basecurrent := avgprices(baseinfo.ItemResultTargetID, 1, baseprice)
-	fmt.Println(basecurrent, materialprices, materialingredients)
+	fmt.Println("Marketboard Price :", basecurrent)
+
+	// Assuming here, that the base materials will always be cheaper.
+	// We can analyze this more in the future.
+	materialcosts := findsum(baseinfo.ItemResultTargetID, baseinfo.IngredientNames, materialtotal, materialprices, materialingredients)
+	fmt.Println("Material Cost :", materialcosts)
+
+	fmt.Println("Profit :", basecurrent-materialcosts, "Profit (%) :", (float32(basecurrent)-float32(materialcosts))/float32(materialcosts)*100)
 
 }
 
-func pricesarray(itemcollection *mongo.Collection, pricecollection *mongo.Collection, baseinfo *database.Recipes, materialprices map[int][10]int, materialingredients map[int][]int) {
+func findsum(itemID int, ingredientarray []int, materialtotal map[int]int, materialprices map[int][10]int, materialingredients map[int][]int) int {
+	var tiersum int
+	// Some materials are base items, so these base items won't have a map key for prices.
+	temppricearray := materialprices[itemID]
+	for i := 0; i < len(ingredientarray); i++ {
+		materialtotalprice, ok := materialtotal[ingredientarray[i]]
+		if ok {
+			// If a material also has a recipe, then we want to recursively call for it's material prices.
+			inneringredientarray, innerrecipe := materialingredients[ingredientarray[i]]
+			if innerrecipe {
+				// We we need to redefine the materialtotalprice with the one that is found by looking at the prices of the materials within the materials.
+				materialtotalprice = findsum(ingredientarray[i], inneringredientarray, materialtotal, materialprices, materialingredients)
+			}
+			temppricearray[i] = materialtotalprice
+		}
+
+		tiersum += temppricearray[i]
+	}
+	return tiersum
+}
+
+func findpricesarray(itemcollection *mongo.Collection, pricecollection *mongo.Collection, baseinfo *database.Recipes, materialprices map[int][10]int, materialingredients map[int][]int) {
 	var pricearray [10]int
 	for i := 0; i < len(baseinfo.IngredientNames); i++ {
 		// Zero is an invalid material ID
 		if baseinfo.IngredientNames[i] != 0 {
 			prices := findprices(pricecollection, baseinfo.IngredientNames[i])
 
-			pricearray[i] = prices.Sargatanas.Prices[0].PricePerUnit
+			pricearray[i] = prices.Sargatanas.Prices[0].PricePerUnit * baseinfo.IngredientAmounts[i]
 		} else {
 			continue
 		}
@@ -59,7 +100,7 @@ func pricesarray(itemcollection *mongo.Collection, pricecollection *mongo.Collec
 	for i := 0; i < len(baseinfo.IngredientRecipes); i++ {
 		if len(baseinfo.IngredientRecipes[i]) != 0 {
 			matinfo := finditem(itemcollection, baseinfo.IngredientRecipes[i][0])
-			pricesarray(itemcollection, pricecollection, matinfo, materialprices, materialingredients)
+			findpricesarray(itemcollection, pricecollection, matinfo, materialprices, materialingredients)
 		}
 	}
 
